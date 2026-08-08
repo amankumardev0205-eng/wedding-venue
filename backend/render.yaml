@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: wedvenue-backend
+    env: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node src/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: SEED_VENUES
+        value: false
+      - key: FRONTEND_URL
+        value: https://wedding-venue-finder-57f4e.web.app
+      - key: FIREBASE_PROJECT_ID
+        value: wedding-venue-finder-57f4e
+      - key: FIREBASE_STORAGE_BUCKET
+        value: wedding-venue-finder-57f4e.firebasestorage.app
+      - key: JWT_SECRET
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false
