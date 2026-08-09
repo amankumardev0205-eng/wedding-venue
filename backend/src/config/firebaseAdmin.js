@@ -38,6 +38,23 @@ if (privateKeyInput.startsWith('{') && privateKeyInput.endsWith('}')) {
   }
 }
 
+// Clean surrounding quotes helper
+const stripQuotes = (str) => {
+  if (!str) return '';
+  str = str.trim();
+  if (str.startsWith('"') && str.endsWith('"')) {
+    str = str.slice(1, -1);
+  }
+  if (str.startsWith("'") && str.endsWith("'")) {
+    str = str.slice(1, -1);
+  }
+  return str.trim();
+};
+
+clientEmailInput = stripQuotes(clientEmailInput);
+projectIdInput = stripQuotes(projectIdInput);
+privateKeyInput = stripQuotes(privateKeyInput);
+
 console.log('Initializing Firebase Admin with config:', {
   NODE_ENV: process.env.NODE_ENV,
   projectId: projectIdInput || 'undefined',

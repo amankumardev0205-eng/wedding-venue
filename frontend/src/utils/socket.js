@@ -14,7 +14,19 @@ export function initSocketClient() {
     autoConnect: true,
     withCredentials: true
   });
-  // reconnect logic is handled by socket.io
+
+  socket.on('connect', () => {
+    console.log('Socket.io: Connected to server successfully with ID:', socket.id);
+  });
+
+  socket.on('connect_error', (err) => {
+    console.error('Socket.io: Connection error details:', err.message, err.description || '');
+  });
+
+  socket.on('disconnect', (reason) => {
+    console.warn('Socket.io: Disconnected from server. Reason:', reason);
+  });
+
   return socket;
 }
 
