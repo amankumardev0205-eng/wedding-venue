@@ -53,39 +53,27 @@ if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
 } else if (projectIdInput && clientEmailInput && privateKeyInput) {
   console.log('Firebase Admin: Attempting to use service account cert credential');
   
-  // Clean surrounding quotes and JSON labels if any (e.g. "private_key": "...")
-  if (privateKeyInput.startsWith('"private_key":') || privateKeyInput.startsWith("'private_key':") || privateKeyInput.startsWith('private_key:')) {
-    const colonIndex = privateKeyInput.indexOf(':');
-    if (colonIndex !== -1) {
-      privateKeyInput = privateKeyInput.substring(colonIndex + 1).trim();
-    }
-  }
-
-  // Clean trailing commas or semicolons if they copied it from a JSON line
-  if (privateKeyInput.endsWith(',')) {
-    privateKeyInput = privateKeyInput.slice(0, -1).trim();
-  }
-  if (privateKeyInput.endsWith(';')) {
-    privateKeyInput = privateKeyInput.slice(0, -1).trim();
-  }
-
-  // Clean surrounding quotes if any
-  if (privateKeyInput.startsWith('"') && privateKeyInput.endsWith('"')) {
-    privateKeyInput = privateKeyInput.slice(1, -1);
-  }
-  if (privateKeyInput.startsWith("'") && privateKeyInput.endsWith("'")) {
-    privateKeyInput = privateKeyInput.slice(1, -1);
-  }
+  // Extract key based on PEM header boundaries to automatically discard any JSON labels, quotes, spaces, or trailing commas
+  const startHeader = '-----BEGIN PRIVATE KEY-----';
+  const endHeader = '-----END PRIVATE KEY-----';
   
-  // Clean trailing commas/semicolons again in case they were inside the outer quotes
-  if (privateKeyInput.endsWith(',')) {
-    privateKeyInput = privateKeyInput.slice(0, -1).trim();
+  // We do the indexOf check first on the normalized string (handling both escaped \n and actual newlines)
+  const normalizedKey = privateKeyInput.replace(/\\n/g, '\n');
+  const startIndex = normalizedKey.indexOf(startHeader);
+  const endIndex = normalizedKey.indexOf(endHeader);
+  
+  if (startIndex !== -1 && endIndex !== -1) {
+    privateKeyInput = normalizedKey.substring(startIndex, endIndex + endHeader.length);
+  } else {
+    // Fallback: if headers are not found in the normalized string, try to clean quotes and trailing characters from the original string
+    if (privateKeyInput.startsWith('"') && privateKeyInput.endsWith('"')) {
+      privateKeyInput = privateKeyInput.slice(1, -1);
+    }
+    if (privateKeyInput.startsWith("'") && privateKeyInput.endsWith("'")) {
+      privateKeyInput = privateKeyInput.slice(1, -1);
+    }
+    privateKeyInput = privateKeyInput.replace(/\\n/g, '\n');
   }
-  if (privateKeyInput.endsWith(';')) {
-    privateKeyInput = privateKeyInput.slice(0, -1).trim();
-  }
-
-  privateKeyInput = privateKeyInput.replace(/\\n/g, '\n');
 
   // Verify private key format
   const startsWithBegin = privateKeyInput.includes('-----BEGIN PRIVATE KEY-----');
