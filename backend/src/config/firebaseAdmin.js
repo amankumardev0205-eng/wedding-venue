@@ -53,6 +53,22 @@ if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
 } else if (projectIdInput && clientEmailInput && privateKeyInput) {
   console.log('Firebase Admin: Attempting to use service account cert credential');
   
+  // Clean surrounding quotes and JSON labels if any (e.g. "private_key": "...")
+  if (privateKeyInput.startsWith('"private_key":') || privateKeyInput.startsWith("'private_key':") || privateKeyInput.startsWith('private_key:')) {
+    const colonIndex = privateKeyInput.indexOf(':');
+    if (colonIndex !== -1) {
+      privateKeyInput = privateKeyInput.substring(colonIndex + 1).trim();
+    }
+  }
+
+  // Clean trailing commas or semicolons if they copied it from a JSON line
+  if (privateKeyInput.endsWith(',')) {
+    privateKeyInput = privateKeyInput.slice(0, -1).trim();
+  }
+  if (privateKeyInput.endsWith(';')) {
+    privateKeyInput = privateKeyInput.slice(0, -1).trim();
+  }
+
   // Clean surrounding quotes if any
   if (privateKeyInput.startsWith('"') && privateKeyInput.endsWith('"')) {
     privateKeyInput = privateKeyInput.slice(1, -1);
@@ -60,6 +76,15 @@ if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
   if (privateKeyInput.startsWith("'") && privateKeyInput.endsWith("'")) {
     privateKeyInput = privateKeyInput.slice(1, -1);
   }
+  
+  // Clean trailing commas/semicolons again in case they were inside the outer quotes
+  if (privateKeyInput.endsWith(',')) {
+    privateKeyInput = privateKeyInput.slice(0, -1).trim();
+  }
+  if (privateKeyInput.endsWith(';')) {
+    privateKeyInput = privateKeyInput.slice(0, -1).trim();
+  }
+
   privateKeyInput = privateKeyInput.replace(/\\n/g, '\n');
 
   // Verify private key format
