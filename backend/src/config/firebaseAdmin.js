@@ -41,7 +41,7 @@ if (privateKeyInput.startsWith('{') && privateKeyInput.endsWith('}')) {
 console.log('Initializing Firebase Admin with config:', {
   NODE_ENV: process.env.NODE_ENV,
   projectId: projectIdInput || 'undefined',
-  hasClientEmail: !!clientEmailInput,
+  clientEmail: clientEmailInput || 'undefined',
   hasPrivateKey: !!privateKeyInput,
   hasGoogleAppCreds: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
   emulatorHost: process.env.FIRESTORE_EMULATOR_HOST || 'none'
