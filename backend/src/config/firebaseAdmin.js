@@ -21,11 +21,28 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 let credential;
+let privateKeyInput = (process.env.FIREBASE_PRIVATE_KEY || '').trim();
+let clientEmailInput = (process.env.FIREBASE_CLIENT_EMAIL || '').trim();
+let projectIdInput = (process.env.FIREBASE_PROJECT_ID || '').trim();
+
+// Check if they pasted the entire serviceAccountKey.json content into FIREBASE_PRIVATE_KEY
+if (privateKeyInput.startsWith('{') && privateKeyInput.endsWith('}')) {
+  try {
+    const credsJson = JSON.parse(privateKeyInput);
+    console.log('Firebase Admin: Detected JSON format in FIREBASE_PRIVATE_KEY. Extracting credential fields...');
+    if (credsJson.project_id) projectIdInput = credsJson.project_id;
+    if (credsJson.client_email) clientEmailInput = credsJson.client_email;
+    if (credsJson.private_key) privateKeyInput = credsJson.private_key;
+  } catch (e) {
+    console.error('Firebase Admin: Failed to parse FIREBASE_PRIVATE_KEY as JSON:', e.message);
+  }
+}
+
 console.log('Initializing Firebase Admin with config:', {
   NODE_ENV: process.env.NODE_ENV,
-  projectId: process.env.FIREBASE_PROJECT_ID || 'undefined',
-  hasClientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
-  hasPrivateKey: !!process.env.FIREBASE_PRIVATE_KEY,
+  projectId: projectIdInput || 'undefined',
+  hasClientEmail: !!clientEmailInput,
+  hasPrivateKey: !!privateKeyInput,
   hasGoogleAppCreds: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
   emulatorHost: process.env.FIRESTORE_EMULATOR_HOST || 'none'
 });
@@ -33,22 +50,36 @@ console.log('Initializing Firebase Admin with config:', {
 if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
   console.log('Firebase Admin: Using GOOGLE_APPLICATION_CREDENTIALS');
   credential = admin.credential.applicationDefault();
-} else if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+} else if (projectIdInput && clientEmailInput && privateKeyInput) {
   console.log('Firebase Admin: Attempting to use service account cert credential');
-  let privateKey = process.env.FIREBASE_PRIVATE_KEY.trim();
-  // Clean surrounding quotes if any
-  if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
-    privateKey = privateKey.slice(1, -1);
-  }
-  if (privateKey.startsWith("'") && privateKey.endsWith("'")) {
-    privateKey = privateKey.slice(1, -1);
-  }
-  privateKey = privateKey.replace(/\\n/g, '\n');
   
+  // Clean surrounding quotes if any
+  if (privateKeyInput.startsWith('"') && privateKeyInput.endsWith('"')) {
+    privateKeyInput = privateKeyInput.slice(1, -1);
+  }
+  if (privateKeyInput.startsWith("'") && privateKeyInput.endsWith("'")) {
+    privateKeyInput = privateKeyInput.slice(1, -1);
+  }
+  privateKeyInput = privateKeyInput.replace(/\\n/g, '\n');
+
+  // Verify private key format
+  const startsWithBegin = privateKeyInput.includes('-----BEGIN PRIVATE KEY-----');
+  const endsWithEnd = privateKeyInput.includes('-----END PRIVATE KEY-----');
+  console.log('Private key format verification:', {
+    length: privateKeyInput.length,
+    containsBeginHeader: startsWithBegin,
+    containsEndHeader: endsWithEnd,
+    pastedCorrectly: startsWithBegin && endsWithEnd
+  });
+
+  if (!startsWithBegin || !endsWithEnd) {
+    console.error('CRITICAL WARNING: The private key is malformed. It must include both the "-----BEGIN PRIVATE KEY-----" and "-----END PRIVATE KEY-----" headers and not be truncated.');
+  }
+
   credential = admin.credential.cert({
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-    privateKey,
+    projectId: projectIdInput,
+    clientEmail: clientEmailInput,
+    privateKey: privateKeyInput,
   });
 } else {
   console.warn('Firebase Admin: Missing service account credentials. Falling back to applicationDefault()');
