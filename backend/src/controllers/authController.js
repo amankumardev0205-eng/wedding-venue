@@ -36,6 +36,7 @@ export const register = async (req, res) => {
       email,
       passwordHash: password,
       role: role || 'customer',
+      favorites: [],
     });
 
     await user.save();
@@ -230,6 +231,7 @@ export const googleLogin = async (req, res) => {
         passwordHash: '', // Social logins do not require local passwords
         role: 'customer',
         avatar: picture || '',
+        favorites: [],
       });
       await user.save();
     }

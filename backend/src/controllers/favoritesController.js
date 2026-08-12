@@ -16,6 +16,10 @@ export const addToFavorites = async (req, res) => {
 
     const user = await User.findById(req.user.id);
 
+    if (!user.favorites) {
+      user.favorites = [];
+    }
+
     // Check if already in favorites
     if (user.favorites.includes(venueId)) {
       return res.status(400).json({ success: false, message: 'Venue already in favorites' });
@@ -42,6 +46,10 @@ export const removeFromFavorites = async (req, res) => {
     const { venueId } = req.params;
 
     const user = await User.findById(req.user.id);
+
+    if (!user.favorites) {
+      user.favorites = [];
+    }
 
     // Check if in favorites
     if (!user.favorites.includes(venueId)) {
@@ -124,7 +132,7 @@ export const isFavorite = async (req, res) => {
     const { venueId } = req.params;
 
     const user = await User.findById(req.user.id);
-    const isFav = user.favorites.includes(venueId);
+    const isFav = user.favorites ? user.favorites.includes(venueId) : false;
 
     res.status(200).json({
       success: true,

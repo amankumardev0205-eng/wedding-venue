@@ -205,6 +205,7 @@ const getPopulationCollection = (path) => {
     user: 'users',
     reviews: 'reviews',
     customer: 'users',
+    favorites: 'venues',
   };
   return mapping[path] || null;
 };
