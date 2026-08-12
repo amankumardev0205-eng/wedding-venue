@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { FiEdit2, FiTrash2, FiPlus } from 'react-icons/fi';
-import Navbar from '../components/Navbar';
+
 import { getVenueCardImageUrl, handleImageError } from '../utils/imageUtils';
 import { motion, AnimatePresence } from 'framer-motion';
 import VenueCardSkeleton from '../components/VenueCardSkeleton';
@@ -81,7 +81,6 @@ export default function OrganizerDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
       <motion.div 
         initial={{ opacity: 0, y: 15 }} 
         animate={{ opacity: 1, y: 0 }} 

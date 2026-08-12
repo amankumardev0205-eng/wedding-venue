@@ -4,7 +4,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import VenueCard from '../components/VenueCard';
 import { getFavoritesStart, getFavoritesSuccess, getFavoritesFailure, setFavoritesPage } from '../redux/favoritesSlice';
 import { favoritesAPI } from '../utils/api';
-import { Search } from 'lucide-react';
+import { Heart } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function Favorites() {
   const navigate = useNavigate();

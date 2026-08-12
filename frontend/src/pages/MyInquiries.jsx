@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import Navbar from '../components/Navbar';
+
 import { getInquiriesStart, getInquiriesSuccess, getInquiriesFailure } from '../redux/inquirySlice';
 import { inquiryAPI } from '../utils/api';
 import { FaCalendar, FaUsers, FaCheckCircle, FaClock, FaTimesCircle } from 'react-icons/fa';
@@ -59,7 +59,6 @@ export default function MyInquiries() {
 
   return (
     <>
-      <Navbar />
       <motion.div 
         initial={{ opacity: 0, y: 15 }} 
         animate={{ opacity: 1, y: 0 }} 

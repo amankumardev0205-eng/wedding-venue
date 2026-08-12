@@ -29,9 +29,8 @@ export default {
       },
       keyframes: {
         float: {
-          '0%': { transform: 'translateY(0px)' },
-          '50%': { transform: 'translateY(-8px)' },
-          '100%': { transform: 'translateY(0px)' }
+          '0%, 100%': { transform: 'translate(0px, 0px) scale(1)' },
+          '50%': { transform: 'translate(15px, -25px) scale(1.05)' }
         },
         fadeInUp: {
           '0%': { opacity: '0', transform: 'translateY(10px)' },

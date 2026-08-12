@@ -58,17 +58,14 @@ export default function Login() {
     dispatch(loginStart());
     try {
       const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-      const token = await user.getIdToken();
-      dispatch(loginSuccess({ user: {
-        name: user.displayName,
-        email: user.email,
-        avatar: user.photoURL,
-        provider: 'google',
-      }, token }));
+      const firebaseUser = result.user;
+      const idToken = await firebaseUser.getIdToken();
+      
+      const response = await authAPI.googleLogin(idToken);
+      dispatch(loginSuccess(response.data));
       navigate('/');
     } catch (err) {
-      dispatch(loginFailure(getGoogleSignInMessage(err)));
+      dispatch(loginFailure(err.response?.data?.message || getGoogleSignInMessage(err)));
     }
   };
 

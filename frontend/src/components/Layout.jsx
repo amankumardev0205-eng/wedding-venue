@@ -84,7 +84,7 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen relative bg-[var(--bg-slate)] text-[var(--text-body)]">
-      {!isHome && <div className="animated-bg" aria-hidden="true" />}
+      {!isHome && <div className="animated-bg animate-float" aria-hidden="true" />}
       <Header />
 
       <main className={isHome ? 'w-full' : 'main-content'}>

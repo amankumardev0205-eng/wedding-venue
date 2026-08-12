@@ -6,7 +6,7 @@ export default function StaticVenueCard({ venue }) {
   const [isFavorited, setIsFavorited] = useState(false);
 
   return (
-    <div className="group overflow-hidden rounded-2xl border border-[var(--border-light)] bg-[var(--clay-card-bg)] shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1.5 flex flex-col h-full">
+    <div className="group overflow-hidden rounded-2xl clay-card transition-all duration-300 hover:-translate-y-1.5 flex flex-col h-full">
       {/* Venue Image */}
       <div className="relative aspect-[3/2] w-full overflow-hidden shrink-0 bg-rose-50/10">
         <img

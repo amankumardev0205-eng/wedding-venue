@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import Navbar from '../components/Navbar';
+
 import { getInquiriesStart, getInquiriesSuccess, getInquiriesFailure, updateInquirySuccess } from '../redux/inquirySlice';
 import { inquiryAPI } from '../utils/api';
 import { FaCalendar, FaUsers, FaCheckCircle, FaClock, FaTimesCircle } from 'react-icons/fa';
@@ -93,7 +93,6 @@ export default function InquiryManagement() {
 
   return (
     <>
-      <Navbar />
       <div className="max-w-6xl mx-auto px-4 py-8">
         <h1 className="text-4xl font-bold mb-8">Manage Inquiries</h1>
 

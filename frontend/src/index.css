@@ -297,9 +297,9 @@
 @layer utilities {
   .clay-card {
     background: var(--clay-card-bg);
-    border: 1px solid var(--clay-card-border);
+    border: 1px solid var(--border-light);
     box-shadow: var(--clay-card-shadow);
-    border-radius: 0.5rem;
+    border-radius: 1rem;
   }
 
   .clay-inset {
@@ -350,14 +350,10 @@
     filter: blur(42px);
     z-index: 0;
     pointer-events: none;
-    animation: float 10s ease-in-out infinite;
+    animation: none;
   }
 
-  @keyframes dots {
-    0% { transform: translateY(0); opacity: 0.2 }
-    50% { transform: translateY(-6px); opacity: 1 }
-    100% { transform: translateY(0); opacity: 0.2 }
-  }
+
 
   .loader-dots {
     display: inline-flex;
@@ -456,3 +452,5 @@
     color: var(--text-muted) !important;
   }
 }
+
+

@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import Navbar from '../components/Navbar';
+
 import { createInquiryStart, createInquirySuccess, createInquiryFailure } from '../redux/inquirySlice';
 import { inquiryAPI, venueAPI } from '../utils/api';
 import { getVenueCardImageUrl, handleImageError } from '../utils/imageUtils';
@@ -82,7 +82,6 @@ export default function SendInquiry() {
 
   return (
     <>
-      <Navbar />
       <div className="max-w-4xl mx-auto px-4 py-8">
         <button
           onClick={() => navigate(`/venues/${venueId}`)}

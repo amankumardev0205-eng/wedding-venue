@@ -68,17 +68,14 @@ export default function Register() {
     dispatch(registerStart());
     try {
       const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-      const token = await user.getIdToken();
-      dispatch(registerSuccess({ user: {
-        name: user.displayName,
-        email: user.email,
-        avatar: user.photoURL,
-        provider: 'google',
-      }, token }));
+      const firebaseUser = result.user;
+      const idToken = await firebaseUser.getIdToken();
+      
+      const response = await authAPI.googleLogin(idToken);
+      dispatch(registerSuccess(response.data));
       navigate('/');
     } catch (err) {
-      dispatch(registerFailure(getGoogleSignInMessage(err)));
+      dispatch(registerFailure(err.response?.data?.message || getGoogleSignInMessage(err)));
     }
   };
 

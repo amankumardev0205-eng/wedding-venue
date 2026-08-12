@@ -11,7 +11,7 @@ import {
   MoreVertical,
   TrendingUp,
 } from "lucide-react";
-import Navbar from "../components/Navbar";
+
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -189,7 +189,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-[#fffaf9] text-slate-800 font-sans">
-      <Navbar />
       
       <div className="max-w-7xl mx-auto px-6 py-10 flex flex-col md:flex-row gap-8">
         
