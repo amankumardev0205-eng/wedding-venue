@@ -24,7 +24,7 @@ export default function OrganizerDashboard() {
   const { venues, loading, error, successMessage } = useSelector((state) => state.organizerVenues);
 
   useEffect(() => {
-    if (!isAuthenticated || user?.role !== 'Organizer') {
+    if (!isAuthenticated || user?.role !== 'organizer') {
       navigate('/login');
       return;
     }

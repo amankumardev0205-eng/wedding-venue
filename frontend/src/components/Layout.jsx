@@ -20,6 +20,10 @@ export default function Layout() {
   const isHome = location.pathname === '/';
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
+  useEffect(() => {
     const socket = initSocketClient();
     if (!socket) return undefined;
 

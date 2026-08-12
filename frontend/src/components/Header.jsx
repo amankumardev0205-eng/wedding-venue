@@ -60,6 +60,11 @@ export default function Header() {
             </Link>
           )}
           {isAuthenticated && <Link to="/my-inquiries" className={getLinkClass('/my-inquiries')}>Inquiries</Link>}
+          {user?.role === 'organizer' && (
+            <Link to="/inquiry-management" className={getLinkClass('/inquiry-management')}>
+              Manage Inquiries
+            </Link>
+          )}
           {(user?.role === 'organizer' || user?.role === 'admin') && (
             <Link to="/organizer-dashboard" className={`${getLinkClass('/organizer-dashboard')} inline-flex items-center gap-1`}>
               <LayoutDashboard size={14} />
