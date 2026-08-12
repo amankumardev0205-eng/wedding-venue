@@ -7,6 +7,7 @@ import {
   getCurrentUser,
   forgotPassword,
   resetPassword,
+  googleLogin,
 } from '../controllers/authController.js';
 import { protect } from '../middleware/auth.js';
 
@@ -32,6 +33,9 @@ router.post(
   ],
   login
 );
+
+// Google Login
+router.post('/google', googleLogin);
 
 // Logout
 router.post('/logout', protect, logout);

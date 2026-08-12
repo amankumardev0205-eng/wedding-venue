@@ -3,6 +3,7 @@ import { validationResult } from 'express-validator';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { sendEmail } from '../utils/email.js';
+import admin from 'firebase-admin';
 
 const generateToken = (user) => {
   const token = jwt.sign(
@@ -196,5 +197,59 @@ export const resetPassword = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @route   POST /api/auth/google
+// @desc    Google login and registration via Firebase ID token
+// @access  Public
+export const googleLogin = async (req, res) => {
+  const { idToken } = req.body;
+
+  if (!idToken) {
+    return res.status(400).json({ success: false, message: 'Firebase ID Token is required' });
+  }
+
+  try {
+    // Verify the Firebase ID Token using Firebase Admin SDK
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const { email, name, picture } = decodedToken;
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email not provided by Google account' });
+    }
+
+    // Check if user exists in the local Firestore DB
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // Create a new customer user document if they do not exist
+      user = new User({
+        name: name || email.split('@')[0],
+        email,
+        passwordHash: '', // Social logins do not require local passwords
+        role: 'customer',
+        avatar: picture || '',
+      });
+      await user.save();
+    }
+
+    // Generate our backend-signed custom JWT token
+    const token = generateToken(user);
+
+    res.status(200).json({
+      success: true,
+      token,
+      user: {
+        id: user.id || user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar || '',
+      },
+    });
+  } catch (error) {
+    console.error('Google Auth Error:', error.message);
+    res.status(401).json({ success: false, message: 'Invalid or expired Firebase ID token' });
   }
 };
