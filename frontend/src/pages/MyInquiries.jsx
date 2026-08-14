@@ -1,18 +1,24 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { Calendar, Users, CheckCircle, Clock, XCircle, MessageSquare } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 import { getInquiriesStart, getInquiriesSuccess, getInquiriesFailure } from '../redux/inquirySlice';
 import { inquiryAPI } from '../utils/api';
-import { FaCalendar, FaUsers, FaCheckCircle, FaClock, FaTimesCircle } from 'react-icons/fa';
-import { motion } from 'framer-motion';
-import { MessageSquare } from 'lucide-react';
+
+// UI components
+import Button from '../components/ui/Button';
+import { Card, CardContent } from '../components/ui/Card';
+import Badge from '../components/ui/Badge';
+import EmptyState from '../components/ui/EmptyState';
+import ErrorState from '../components/ui/ErrorState';
 
 export default function MyInquiries() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { inquiries, isLoading, error } = useSelector((state) => state.inquiries);
-  const { user } = useSelector((state) => state.auth);
+  const { inquiries, isLoading, error } = useSelector((state) => state.inquiries || { inquiries: [], isLoading: false, error: null });
+  const { user } = useSelector((state) => state.auth || {});
 
   useEffect(() => {
     if (!user) {
@@ -36,21 +42,24 @@ export default function MyInquiries() {
     switch (status) {
       case 'accepted':
         return (
-          <span className="flex items-center gap-2 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">
-            <FaCheckCircle size={14} /> Accepted
-          </span>
+          <Badge variant="success" className="text-xs py-1 px-3 capitalize font-bold flex items-center gap-1.5 w-fit select-none">
+            <CheckCircle size={13} className="shrink-0" />
+            <span>Accepted</span>
+          </Badge>
         );
       case 'rejected':
         return (
-          <span className="flex items-center gap-2 bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-semibold">
-            <FaTimesCircle size={14} /> Rejected
-          </span>
+          <Badge variant="danger" className="text-xs py-1 px-3 capitalize font-bold flex items-center gap-1.5 w-fit select-none">
+            <XCircle size={13} className="shrink-0" />
+            <span>Rejected</span>
+          </Badge>
         );
       default:
         return (
-          <span className="flex items-center gap-2 bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm font-semibold">
-            <FaClock size={14} /> Pending
-          </span>
+          <Badge variant="warning" className="text-xs py-1 px-3 capitalize font-bold flex items-center gap-1.5 w-fit select-none">
+            <Clock size={13} className="shrink-0" />
+            <span>Pending</span>
+          </Badge>
         );
     }
   };
@@ -58,150 +67,180 @@ export default function MyInquiries() {
   if (!user) return null;
 
   return (
-    <>
-      <motion.div 
-        initial={{ opacity: 0, y: 15 }} 
-        animate={{ opacity: 1, y: 0 }} 
-        transition={{ duration: 0.4 }}
-        className="max-w-6xl mx-auto px-4 py-8"
-      >
-        <h1 className="text-4xl font-bold mb-8">My Inquiries</h1>
+    <div className="min-h-screen text-[var(--text-body)] pt-8 pb-16 bg-[var(--bg-slate)] transition-colors duration-300">
+      <div className="mx-auto max-w-6xl px-6">
+        
+        {/* Page Header */}
+        <div className="mb-8 flex flex-col gap-2 select-none">
+          <span className="text-xs font-bold uppercase tracking-wider text-primary">Venue Booking Requests</span>
+          <h1 className="font-serif text-3xl md:text-5xl font-extrabold text-[var(--text-dark)] leading-tight tracking-wide">
+            Your Inquiries
+          </h1>
+          <p className="text-sm text-[var(--text-muted)] font-medium leading-relaxed max-w-[500px]">
+            Track status replies and coordinate schedules with venue coordinators.
+          </p>
+        </div>
 
+        {/* Error State */}
         {error && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
-            {error}
-          </motion.div>
+          <div className="mb-6">
+            <ErrorState 
+              title="Unable to load inquiries"
+              message={error}
+              onRetry={fetchInquiries}
+            />
+          </div>
         )}
 
+        {/* Loading Skeletons */}
         {isLoading && (
           <div className="space-y-4">
             {[1, 2, 3].map((n) => (
-              <div key={n} className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-gray-200 animate-pulse">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                  <div className="space-y-2">
-                    <div className="h-3 bg-gray-200 rounded w-1/4"></div>
-                    <div className="h-5 bg-gray-200 rounded w-3/4"></div>
+              <Card key={n} className="border border-[var(--border-medium)] select-none">
+                <CardContent className="p-6 space-y-4 animate-pulse">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <div className="h-3 bg-stone-200 dark:bg-stone-850 rounded w-1/4" />
+                      <div className="h-5 bg-stone-250 dark:bg-stone-800/40 rounded w-3/4" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-3 bg-stone-200 dark:bg-stone-850 rounded w-1/4" />
+                      <div className="h-5 bg-stone-250 dark:bg-stone-800/40 rounded w-2/4" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-3 bg-stone-200 dark:bg-stone-850 rounded w-1/4" />
+                      <div className="h-5 bg-stone-250 dark:bg-stone-800/40 rounded w-1/4" />
+                    </div>
+                    <div className="h-7 bg-stone-250 dark:bg-stone-800/40 rounded-full w-24" />
                   </div>
-                  <div className="space-y-2">
-                    <div className="h-3 bg-gray-200 rounded w-1/4"></div>
-                    <div className="h-5 bg-gray-200 rounded w-2/4"></div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="h-3 bg-gray-200 rounded w-1/4"></div>
-                    <div className="h-5 bg-gray-200 rounded w-1/4"></div>
-                  </div>
-                  <div className="h-6 bg-gray-200 rounded-full w-24"></div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         )}
 
+        {/* Inquiries List */}
         {!isLoading && inquiries.length > 0 && (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {inquiries.map((inquiry) => (
-              <motion.div 
+              <Card 
                 key={inquiry._id} 
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 border-l-4 border-blue-600"
+                className="border border-[var(--border-medium)] hover:border-primary/20 transition-all duration-200 hover:shadow-sm"
               >
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                  <div>
-                    <p className="text-gray-600 text-sm">Venue</p>
-                    <p className="font-semibold text-lg">{inquiry.venue.name}</p>
-                  </div>
-
-                  <div className="flex items-start gap-2">
-                    <FaCalendar className="text-gray-600 mt-1" size={16} />
+                <CardContent className="p-6 flex flex-col gap-5">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 border-b border-[var(--border-light)] pb-4">
+                    
                     <div>
-                      <p className="text-gray-600 text-sm">Event Date</p>
-                      <p className="font-semibold">
-                        {new Date(inquiry.eventDate).toLocaleDateString()}
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] select-none">Venue</span>
+                      <p className="font-serif font-bold text-lg text-[var(--text-dark)] leading-snug mt-1 truncate" title={inquiry.venue.name}>
+                        {inquiry.venue.name}
                       </p>
                     </div>
-                  </div>
 
-                  <div className="flex items-start gap-2">
-                    <FaUsers className="text-gray-600 mt-1" size={16} />
-                    <div>
-                      <p className="text-gray-600 text-sm">Guests</p>
-                      <p className="font-semibold">{inquiry.guestCount}</p>
+                    <div className="flex items-start gap-2.5">
+                      <Calendar className="text-primary shrink-0 mt-0.5" size={16} />
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] select-none">Event Date</span>
+                        <p className="font-semibold text-sm text-[var(--text-dark)] mt-1">
+                          {new Date(inquiry.eventDate).toLocaleDateString(undefined, {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </p>
+                      </div>
                     </div>
+
+                    <div className="flex items-start gap-2.5">
+                      <Users className="text-primary shrink-0 mt-0.5" size={16} />
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] select-none">Guests Count</span>
+                        <p className="font-semibold text-sm text-[var(--text-dark)] mt-1">{inquiry.guestCount} guests</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] select-none">Status</span>
+                      <div className="mt-1">
+                        {getStatusBadge(inquiry.status)}
+                      </div>
+                    </div>
+
                   </div>
 
-                  <div>
-                    <p className="text-gray-600 text-sm">Status</p>
-                    {getStatusBadge(inquiry.status)}
-                  </div>
-                </div>
-
-                {inquiry.organizerResponse && (
-                  <div className="mb-4 p-4 bg-blue-50 rounded border border-blue-200">
-                    <p className="text-sm text-gray-600 mb-1">Organizer Response:</p>
-                    <p className="text-gray-800">{inquiry.organizerResponse}</p>
-                  </div>
-                )}
-
-                {inquiry.message && (
-                  <div className="mb-4 p-4 bg-gray-50 rounded">
-                    <p className="text-sm text-gray-600 mb-1">Your Message:</p>
-                    <p className="text-gray-800">{inquiry.message}</p>
-                  </div>
-                )}
-
-                <div className="flex flex-wrap gap-3">
-                  <button
-                    onClick={() => navigate(`/venues/${inquiry.venue._id || inquiry.venue.id}`)}
-                    className="px-4 py-2 text-white bg-[#cf5577] clay-button text-sm font-semibold"
-                  >
-                    View Venue
-                  </button>
-                  {inquiry.venue.organizer && (
-                    <button
-                      onClick={() => navigate(`/chat?userId=${inquiry.venue.organizer}`)}
-                      className="px-4 py-2 text-[#cf5577] bg-white clay-button text-sm font-semibold flex items-center gap-2"
-                    >
-                      <MessageSquare size={16} />
-                      Chat with Coordinator
-                    </button>
+                  {/* Message displays */}
+                  {inquiry.message && (
+                    <div className="p-4 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-850 rounded-xl select-text text-sm">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 select-none block mb-1">Your Message</span>
+                      <p className="text-[var(--text-body)] leading-relaxed">{inquiry.message}</p>
+                    </div>
                   )}
-                  {inquiry.status === 'pending' && (
-                    <button
-                      onClick={() => alert('TODO: Implement cancel inquiry')}
-                      className="px-4 py-2 border border-red-500 text-red-500 rounded-lg hover:bg-red-50/10 active:scale-95 transition-all text-sm font-semibold"
-                    >
-                      Cancel Inquiry
-                    </button>
+
+                  {inquiry.organizerResponse && (
+                    <div className="p-4 bg-primary/5 border border-primary/10 rounded-xl select-text text-sm border-l-4 border-l-primary">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-primary select-none block mb-1">Coordinator Response</span>
+                      <p className="text-[var(--text-body)] leading-relaxed">{inquiry.organizerResponse}</p>
+                    </div>
                   )}
-                </div>
-              </motion.div>
+
+                  {/* Actions buttons */}
+                  <div className="flex flex-wrap gap-3 mt-1 select-none">
+                    <Button
+                      onClick={() => navigate(`/venues/${inquiry.venue._id || inquiry.venue.id}`)}
+                      variant="primary"
+                      size="sm"
+                      className="font-bold"
+                    >
+                      View Venue
+                    </Button>
+                    
+                    {inquiry.venue.organizer && (
+                      <Button
+                        onClick={() => navigate(`/chat?userId=${inquiry.venue.organizer}`)}
+                        variant="outline"
+                        size="sm"
+                        className="font-bold text-primary border-primary/20 hover:bg-primary/5"
+                        leftIcon={<MessageSquare size={13} />}
+                      >
+                        Chat with Coordinator
+                      </Button>
+                    )}
+                    
+                    {inquiry.status === 'pending' && (
+                      <Button
+                        onClick={() => alert('TODO: Implement cancel inquiry')}
+                        variant="outline"
+                        size="sm"
+                        className="font-bold text-red-600 border-red-200 dark:border-red-900/30 hover:bg-red-50 dark:hover:bg-red-950/20 ml-auto"
+                      >
+                        Cancel Inquiry
+                      </Button>
+                    )}
+                  </div>
+
+                </CardContent>
+              </Card>
             ))}
           </div>
         )}
 
+        {/* Empty Collection State */}
         {!isLoading && inquiries.length === 0 && !error && (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center py-16 px-6 clay-card flex flex-col items-center justify-center border border-[var(--border-light)] rounded-2xl shadow-sm bg-white dark:bg-[#211C1F]"
-          >
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-500/10 mb-5 shadow-sm text-[#E85D83] dark:text-[#F06D91]">
-              <FaCalendar size={24} />
-            </div>
-            <h3 className="text-xl font-bold text-[var(--text-dark)] mb-2">No Inquiries Yet</h3>
-            <p className="max-w-md text-sm text-[var(--text-muted)] mb-6 leading-relaxed">
-              You haven't sent any inquiries to wedding venues yet. Discover your dream venues and reach out to them!
-            </p>
-            <button
-              onClick={() => navigate('/venues')}
-              className="rounded-xl bg-[#E85D83] hover:bg-[#C43C62] dark:bg-[#F06D91] dark:hover:bg-[#E85D83] px-6 py-2.5 text-xs font-bold text-white transition hover:-translate-y-[1px] shadow-sm cursor-pointer"
-            >
-              Browse Venues
-            </button>
-          </motion.div>
+          <EmptyState
+            title="No inquiries yet"
+            description="You haven't sent any booking inquiries to venues yet. Discover your dream venues and reach out to coordinators!"
+            action={
+              <Button 
+                variant="primary" 
+                onClick={() => navigate('/venues')}
+                className="shadow-sm font-bold"
+              >
+                Browse Venues
+              </Button>
+            }
+          />
         )}
-      </motion.div>
-    </>
+      </div>
+    </div>
   );
 }

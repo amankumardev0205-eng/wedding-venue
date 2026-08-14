@@ -106,7 +106,7 @@ export default function Layout() {
         </AnimatePresence>
       </main>
 
-      {!isHome && <Footer />}
+      <Footer />
       <ToastContainer position="top-right" />
     </div>
   );

@@ -4,80 +4,97 @@
 
 @layer base {
   :root {
-    --primary-blue: #E85D83;
-    --primary-hover: #C43C62;
-    --bg-slate: #FAF8F5;
-    --bg-fade-color: 250, 248, 245;
-    --text-dark: #1C1917;
-    --text-muted: #57534E;
-    --text-body: #292524;
-    --border-light: rgba(80, 60, 70, 0.15);
-    --clay-peach: #ffd8c7;
-    --clay-rose: #f6a7b8;
-    --clay-mint: #bdebd8;
-    --clay-lilac: #d9cdfb;
-    --clay-cream: #fff9ef;
-    --shadow-sm: 0 2px 8px rgba(80, 60, 70, 0.08);
-    --shadow-md: 0 8px 24px rgba(80, 60, 70, 0.12);
-    --shadow-lg: 0 16px 40px rgba(80, 60, 70, 0.16);
-    --radius-lg: 16px;
-    --radius-xl: 20px;
+    --primary: #8B263E; /* Sophisticated deep rose-wine */
+    --primary-hover: #721E32;
+    --primary-light: #FDF2F4;
+
+    /* Legacy maps to prevent breakdown */
+    --primary-blue: #8B263E;
+    --bg-slate: #FAF6F0; /* Warm ivory/off-white background */
+    --bg-fade-color: 250, 246, 240;
+    --text-dark: #1C1917; /* Deep charcoal */
+    --text-muted: #6B6661; /* Muted stone grey */
+    --text-body: #292524; /* Body charcoal */
+    --border-light: rgba(139, 38, 62, 0.06); /* Extremely subtle wine-tinted border */
+    
+    /* Reusable border tokens */
+    --border-medium: #E7E5E4; /* Warm stone border */
+    --bg-card: #FFFFFF;
+
+    /* Claymorphic palette overrides (keeping naming alignment) */
+    --clay-peach: #FAF0E6;
+    --clay-rose: #F3D9DF;
+    --clay-mint: #E8F4F0;
+    --clay-lilac: #ECEAF7;
+    --clay-cream: #FCFAF7;
+
+    --shadow-sm: 0 1px 3px rgba(28, 25, 23, 0.05), 0 1px 2px rgba(28, 25, 23, 0.02);
+    --shadow-md: 0 4px 20px -2px rgba(28, 25, 23, 0.04), 0 2px 8px -1px rgba(28, 25, 23, 0.02);
+    --shadow-lg: 0 12px 30px -4px rgba(28, 25, 23, 0.06), 0 4px 12px -2px rgba(28, 25, 23, 0.03);
+    
+    --radius-lg: 12px;
+    --radius-xl: 16px;
 
     /* Theme-dependent background gradient */
-    --bg-gradient: linear-gradient(135deg, rgba(255, 248, 243, 0.8), rgba(255, 252, 250, 0.9));
+    --bg-gradient: linear-gradient(135deg, rgba(253, 251, 247, 0.8), rgba(250, 246, 240, 0.95));
 
     /* Theme-dependent header variables */
-    --header-bg: rgba(255, 255, 255, 0.72);
-    --header-border: rgba(255, 255, 255, 0.7);
+    --header-bg: rgba(253, 251, 247, 0.85);
+    --header-border: rgba(139, 38, 62, 0.05);
 
-    /* Light Theme Claymorphic Variables */
-    --clay-card-bg: linear-gradient(145deg, rgba(255,255,255,0.92), rgba(255,252,250,0.85));
-    --clay-card-border: rgba(255,255,255,0.85);
-    --clay-card-shadow: var(--shadow-md);
+    /* Legacy Claymorphic styles redesigned as premium elegant UI */
+    --clay-card-bg: #FFFFFF;
+    --clay-card-border: #E7E5E4;
+    --clay-card-shadow: var(--shadow-sm);
 
-    --clay-inset-bg: rgba(255,255,255,0.6);
-    --clay-inset-border: rgba(80, 60, 70, 0.1);
-    --clay-inset-shadow: inset 2px 2px 5px rgba(80,60,70,0.05);
+    --clay-inset-bg: #FDFBF7;
+    --clay-inset-border: #E7E5E4;
+    --clay-inset-shadow: inset 0 1px 2px rgba(28, 25, 23, 0.02);
 
-    --clay-btn-bg-neutral: rgba(255, 255, 255, 0.8);
-    --clay-btn-shadow: 0 4px 12px rgba(80,60,70,0.08);
-    --clay-btn-hover-shadow: 0 6px 16px rgba(80,60,70,0.12);
+    --clay-btn-bg-neutral: #FFFFFF;
+    --clay-btn-shadow: var(--shadow-sm);
+    --clay-btn-hover-shadow: var(--shadow-md);
   }
 
   [data-theme="dark"] {
     color-scheme: dark;
 
-    --primary-blue: #F06D91;
-    --primary-hover: #E85D83;
-    --bg-slate: #171416;
-    --bg-fade-color: 23, 20, 22;
-    --text-dark: #FFF7F5;
-    --text-muted: #C8BCC0;
-    --text-body: #FFF7F5;
-    --border-light: rgba(255, 255, 255, 0.10);
+    --primary: #E85D83; /* Higher readability rose/wine for dark theme */
+    --primary-hover: #D44B6E;
+    --primary-light: rgba(232, 93, 131, 0.1);
 
-    --shadow-sm: 0 2px 4px rgba(0,0,0,0.5);
-    --shadow-md: 0 10px 25px rgba(0,0,0,0.6);
-    --shadow-lg: 0 20px 40px rgba(0,0,0,0.7);
+    --primary-blue: #E85D83;
+    --bg-slate: #121011; /* Deep, warm dark charcoal-rose tint */
+    --bg-fade-color: 18, 16, 17;
+    --text-dark: #FDFBF7; /* Cream/white text */
+    --text-muted: #A8A29E;
+    --text-body: #E7E5E4;
+    --border-light: rgba(232, 93, 131, 0.1);
+    --border-medium: #2E2A2C;
+    --bg-card: #1A1618;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.5);
 
     /* Deep Premium Dark Gradient background */
-    --bg-gradient: linear-gradient(135deg, #171416, #211C1F);
+    --bg-gradient: linear-gradient(135deg, #121011, #1C1819);
 
-    --header-bg: rgba(21, 17, 24, 0.85);
-    --header-border: rgba(255, 255, 255, 0.10);
+    --header-bg: rgba(26, 22, 24, 0.85);
+    --header-border: rgba(255, 255, 255, 0.06);
 
     /* Dark Theme Claymorphic Overrides */
-    --clay-card-bg: linear-gradient(145deg, #211C1F, #2A2327);
-    --clay-card-border: rgba(255, 255, 255, 0.08);
-    --clay-card-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    --clay-card-bg: #1A1618;
+    --clay-card-border: #2E2A2C;
+    --clay-card-shadow: var(--shadow-md);
 
-    --clay-inset-bg: rgba(23, 20, 22, 0.6);
-    --clay-inset-border: rgba(255, 255, 255, 0.08);
-    --clay-inset-shadow: inset 2px 2px 6px rgba(0,0,0,0.5);
+    --clay-inset-bg: #141112;
+    --clay-inset-border: #2E2A2C;
+    --clay-inset-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
 
-    --clay-btn-bg-neutral: rgba(255, 255, 255, 0.08);
-    --clay-btn-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-    --clay-btn-hover-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+    --clay-btn-bg-neutral: rgba(255, 255, 255, 0.05);
+    --clay-btn-shadow: var(--shadow-sm);
+    --clay-btn-hover-shadow: var(--shadow-md);
   }
 
   html {
@@ -98,6 +115,43 @@
   select option {
     background-color: var(--bg-slate);
     color: var(--text-dark);
+  }
+
+  /* Custom Selection styling */
+  ::selection {
+    background-color: rgba(139, 38, 62, 0.15);
+    color: var(--primary);
+  }
+
+  [data-theme="dark"] ::selection {
+    background-color: rgba(232, 93, 131, 0.25);
+    color: var(--primary);
+  }
+
+  /* Universal clean focus indicator */
+  :focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+
+  /* Custom thin premium scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--bg-slate);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-medium);
+    border-radius: 9999px;
+    border: 2px solid var(--bg-slate);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
   }
 }
 
@@ -297,27 +351,38 @@
 @layer utilities {
   .clay-card {
     background: var(--clay-card-bg);
-    border: 1px solid var(--border-light);
+    border: 1px solid var(--clay-card-border);
     box-shadow: var(--clay-card-shadow);
-    border-radius: 1rem;
+    border-radius: var(--radius-xl);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.3s ease;
   }
 
   .clay-inset {
     background: var(--clay-inset-bg);
     border: 1px solid var(--clay-inset-border);
     box-shadow: var(--clay-inset-shadow);
-    border-radius: 0.5rem;
+    border-radius: var(--radius-lg);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .clay-inset:focus-within {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 2px var(--primary-light), var(--clay-inset-shadow) !important;
   }
 
   .clay-button {
-    border-radius: 0.5rem;
+    border-radius: var(--radius-lg);
     box-shadow: var(--clay-btn-shadow);
-    transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .clay-button:hover {
+  .clay-button:hover:not(:disabled) {
     transform: translateY(-1px);
     box-shadow: var(--clay-btn-hover-shadow);
+    filter: brightness(1.03);
+  }
+
+  .clay-button:active:not(:disabled) {
+    transform: translateY(0);
   }
 
   /* Specificity overrides for Tailwind inline opacity white backgrounds in dark mode */

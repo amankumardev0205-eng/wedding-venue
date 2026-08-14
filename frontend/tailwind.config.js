@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: ['class', '[data-theme="dark"]'],
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -8,9 +9,17 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#2563eb',
-          600: '#1d4ed8',
-          500: '#3b82f6'
+          DEFAULT: 'var(--primary)',
+          600: 'var(--primary-hover)',
+          500: 'var(--primary-light)'
+        },
+        brand: {
+          wine: '#8B263E',
+          burgundy: '#721E32',
+          blush: '#FDF2F4',
+          ivory: '#FAF6F0',
+          charcoal: '#1C1917',
+          stone: '#E7E5E4'
         },
         glass: {
           50: 'rgba(255,255,255,0.5)',
@@ -18,8 +27,14 @@ export default {
         },
         accent: {
           pink: '#ff6b9f',
-          rose: '#ff5c7c'
+          rose: '#ff5c7c',
+          wine: 'var(--primary)'
         }
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        serif: ['Cormorant Garamond', 'Georgia', 'serif'],
+        display: ['Playfair Display', 'serif']
       },
       borderRadius: {
         'xl-2': '1.25rem'

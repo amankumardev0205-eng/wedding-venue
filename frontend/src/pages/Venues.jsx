@@ -5,17 +5,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Building2,
   Grid2X2,
-  IndianRupee,
   List,
   Map,
   MapPin,
   Search,
   SlidersHorizontal,
-  Star,
   Users,
   Navigation,
   Check,
-  ChevronDown
+  ChevronDown,
+  Sparkles,
+  DollarSign,
+  Star,
+  Trash2
 } from 'lucide-react';
 import VenueCard from '../components/VenueCard';
 import VenueCardSkeleton from '../components/VenueCardSkeleton';
@@ -29,6 +31,16 @@ import {
   setPage,
 } from '../redux/venueSlice';
 import { venueAPI } from '../utils/api';
+
+// UI components
+import Button from '../components/ui/Button';
+import Input from '../components/ui/Input';
+import Select from '../components/ui/Select';
+import { Card, CardContent } from '../components/ui/Card';
+import Badge from '../components/ui/Badge';
+import Modal from '../components/ui/Modal';
+import EmptyState from '../components/ui/EmptyState';
+import ErrorState from '../components/ui/ErrorState';
 
 const locationData = {
   rajasthan: ['jaipur', 'udaipur', 'jodhpur'],
@@ -55,14 +67,13 @@ export default function Venues() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [localSearch, setLocalSearch] = useState(filters.search || '');
-
   const [showFilters, setShowFilters] = useState(() => {
     if (typeof window !== 'undefined') {
       return window.innerWidth >= 1024;
     }
     return true;
   });
-
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [hoveredVenueId, setHoveredVenueId] = useState(null);
   const [mobileView, setMobileView] = useState('list'); // 'list' or 'map'
 
@@ -191,8 +202,6 @@ export default function Venues() {
     }
     return tags;
   })();
-
-
 
   useEffect(() => {
     const nextFilters = {};
@@ -331,9 +340,11 @@ export default function Venues() {
 
   const handleClearFilters = () => {
     dispatch(clearFilters());
+    setIsMobileFilterOpen(false);
   };
 
   const handleApplyFilters = () => {
+    setIsMobileFilterOpen(false);
     if (localSearch !== (filters.search || '')) {
       dispatch(setFilter({ search: localSearch }));
     } else {
@@ -372,10 +383,6 @@ export default function Venues() {
     }));
   };
 
-  const fieldClass = 'mt-1.5 flex items-center gap-2.5 px-3 py-1.5 rounded-lg border border-[#E5E7EB] dark:border-white/10 bg-[#F9FAFB] dark:bg-[#211C1F] focus-within:border-[#E85D83] dark:focus-within:border-[#F06D91] focus-within:ring-1 focus-within:ring-[#E85D83]/20 dark:focus-within:ring-[#F06D91]/20 transition-all shadow-sm h-10 w-full relative';
-  const inputClass = 'w-full bg-transparent text-sm text-[#292524] dark:text-[#FFF7F5] outline-none placeholder-[#756B70] dark:placeholder-[#C8BCC0]';
-  const labelClass = 'text-xs font-bold tracking-wider uppercase text-[#292524] dark:text-[#FFF7F5]';
-
   const citiesForSelectedState = filters.state
     ? locationData[filters.state] || []
     : Object.values(locationData).flat();
@@ -403,79 +410,331 @@ export default function Venues() {
     return `${total} ${total === 1 ? 'venue' : 'venues'} found`;
   })();
 
+  // Shared Filters Form Content
+  const renderFilterContent = () => (
+    <div className="space-y-6">
+      {/* PRIMARY FILTERS GROUP */}
+      <div className="flex flex-col gap-4">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-primary border-b border-[var(--border-light)] pb-1 flex items-center gap-1.5 select-none">
+          <Building2 size={13} />
+          <span>Primary Filters</span>
+        </h3>
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <Select 
+            label="State" 
+            value={filters.state || ''} 
+            onChange={(e) => handleStateChange(e.target.value)}
+          >
+            <option value="">All States</option>
+            <option value="rajasthan">Rajasthan</option>
+            <option value="goa">Goa</option>
+            <option value="maharashtra">Maharashtra</option>
+            <option value="delhi ncr">Delhi NCR</option>
+            <option value="karnataka">Karnataka</option>
+          </Select>
+
+          <Select 
+            label="City" 
+            value={filters.city || ''} 
+            onChange={(e) => handleFilterChange('city', e.target.value)}
+          >
+            <option value="">All Cities</option>
+            {citiesForSelectedState.map((city) => (
+              <option key={city} value={city} className="capitalize">{city}</option>
+            ))}
+          </Select>
+
+          <Input 
+            label="Search" 
+            placeholder="Venue name..." 
+            value={localSearch} 
+            onChange={(e) => setLocalSearch(e.target.value)}
+            leftIcon={<Search size={14} className="text-[var(--text-muted)]" />}
+          />
+
+          <Select 
+            label="Venue Type" 
+            value={filters.venueType || ''} 
+            onChange={(e) => handleFilterChange('venueType', e.target.value)}
+          >
+            <option value="">All Types</option>
+            <option value="banquet">Banquet</option>
+            <option value="resort">Resort</option>
+            <option value="lawn">Lawn</option>
+            <option value="hotel">Hotel</option>
+            <option value="club">Club</option>
+          </Select>
+        </div>
+      </div>
+
+      {/* REQUIREMENTS & RADIUS */}
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-12 border-t border-[var(--border-light)] pt-5">
+        {/* Requirements */}
+        <div className="lg:col-span-7 flex flex-col gap-4">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-primary border-b border-[var(--border-light)] pb-1 flex items-center gap-1.5 select-none">
+            <Sparkles size={13} />
+            <span>Venue Requirements</span>
+          </h3>
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
+            {/* Price Range */}
+            <div className="flex flex-col gap-1.5">
+              <span className="text-sm font-semibold text-[var(--text-dark)] select-none">Price per Plate</span>
+              <div className="flex items-center gap-2">
+                <Input 
+                  type="number" 
+                  placeholder="Min" 
+                  value={filters.minPrice || ''} 
+                  onChange={(e) => handleFilterChange('minPrice', e.target.value)}
+                  className="flex-1"
+                />
+                <span className="text-[var(--text-muted)] font-bold">—</span>
+                <Input 
+                  type="number" 
+                  placeholder="Max" 
+                  value={filters.maxPrice || ''} 
+                  onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
+                  className="flex-1"
+                />
+              </div>
+            </div>
+
+            {/* Capacity Range */}
+            <div className="flex flex-col gap-1.5">
+              <span className="text-sm font-semibold text-[var(--text-dark)] select-none">Guest Capacity</span>
+              <div className="flex items-center gap-2">
+                <Input 
+                  type="number" 
+                  placeholder="Min" 
+                  value={filters.minCapacity || ''} 
+                  onChange={(e) => handleFilterChange('minCapacity', e.target.value)}
+                  className="flex-1"
+                />
+                <span className="text-[var(--text-muted)] font-bold">—</span>
+                <Input 
+                  type="number" 
+                  placeholder="Max" 
+                  value={filters.maxCapacity || ''} 
+                  onChange={(e) => handleFilterChange('maxCapacity', e.target.value)}
+                  className="flex-1"
+                />
+              </div>
+            </div>
+
+            {/* Min Rating */}
+            <Select 
+              label="Min Rating" 
+              value={filters.minRating || ''} 
+              onChange={(e) => handleFilterChange('minRating', e.target.value)}
+            >
+              <option value="">Any Rating</option>
+              <option value="3">3+ ★</option>
+              <option value="4">4+ ★</option>
+              <option value="4.5">4.5+ ★</option>
+            </Select>
+          </div>
+        </div>
+
+        {/* Nearby Area Search */}
+        <div className="lg:col-span-5 flex flex-col gap-4">
+          <div className="flex items-center justify-between border-b border-[var(--border-light)] pb-1 select-none">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
+              <MapPin size={13} />
+              <span>Nearby Search</span>
+            </h3>
+            <button
+              type="button"
+              onClick={handleGetCurrentLocation}
+              className="text-xs font-bold text-primary flex items-center gap-1 hover:underline cursor-pointer"
+            >
+              <Navigation size={11} className="fill-current" />
+              <span>Use current location</span>
+            </button>
+          </div>
+          <div className="grid gap-4 grid-cols-3">
+            <Select 
+              label="Location / Area" 
+              value={hasCustomCoords ? 'custom' : (activeLocationIndex === -1 ? '' : activeLocationIndex)}
+              onChange={(e) => handleLocationSelect(e.target.value)}
+              className="col-span-2"
+            >
+              <option value="">Select area...</option>
+              {hasCustomCoords && <option value="custom">📍 Custom Map Coords</option>}
+              {presetLocations.map((loc, idx) => (
+                <option key={loc.name} value={idx}>{loc.name}</option>
+              ))}
+            </Select>
+            <Input 
+              label="Radius (Km)" 
+              type="number" 
+              placeholder="Km" 
+              value={filters.radiusKm || ''} 
+              onChange={(e) => handleFilterChange('radiusKm', e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* AMENITIES */}
+      <div className="border-t border-[var(--border-light)] pt-5 flex flex-col gap-3">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5 select-none">
+          <Check size={13} />
+          <span>Amenities</span>
+        </h3>
+        <div className="flex flex-wrap gap-2 select-none">
+          {amenities.map((amenity) => {
+            const isSelected = filters.amenities?.includes(amenity);
+            return (
+              <button
+                key={amenity}
+                type="button"
+                onClick={() => toggleAmenity(amenity)}
+                className={`rounded-full px-4 py-2 text-xs font-bold capitalize border transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${
+                  isSelected
+                  ? 'bg-primary text-white border-transparent shadow-sm'
+                  : 'bg-transparent text-[var(--text-body)] border-stone-200 dark:border-stone-850 hover:bg-primary/5 hover:border-primary/20'
+                }`}
+              >
+                {isSelected && <Check size={12} className="stroke-[3]" />}
+                <span>{amenity}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* SPACE PREFERENCE */}
+      <div className="border-t border-[var(--border-light)] pt-5 flex flex-col gap-3">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5 select-none">
+          <Sparkles size={13} />
+          <span>Space Preference</span>
+        </h3>
+        <div className="flex flex-wrap gap-2 select-none">
+          <button
+            type="button"
+            onClick={() => handleFilterChange('indoor', filters.indoor === 'true' ? '' : 'true')}
+            className={`rounded-full px-4 py-2 text-xs font-bold capitalize border transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${
+              filters.indoor === 'true'
+              ? 'bg-primary text-white border-transparent shadow-sm'
+              : 'bg-transparent text-[var(--text-body)] border-stone-200 dark:border-stone-850 hover:bg-primary/5 hover:border-primary/20'
+            }`}
+          >
+            {filters.indoor === 'true' && <Check size={12} className="stroke-[3]" />}
+            <span>Indoor</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => handleFilterChange('outdoor', filters.outdoor === 'true' ? '' : 'true')}
+            className={`rounded-full px-4 py-2 text-xs font-bold capitalize border transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${
+              filters.outdoor === 'true'
+              ? 'bg-primary text-white border-transparent shadow-sm'
+              : 'bg-transparent text-[var(--text-body)] border-stone-200 dark:border-stone-850 hover:bg-primary/5 hover:border-primary/20'
+            }`}
+          >
+            {filters.outdoor === 'true' && <Check size={12} className="stroke-[3]" />}
+            <span>Outdoor</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ACTIONS */}
+      <div className="flex items-center gap-3 border-t border-[var(--border-light)] pt-5 select-none">
+        <Button 
+          type="button" 
+          variant="primary" 
+          onClick={handleApplyFilters}
+          className="shadow-sm"
+        >
+          Apply Filters
+        </Button>
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={handleClearFilters}
+          className="text-stone-500 border-stone-200 hover:bg-stone-50 dark:border-stone-800 dark:hover:bg-stone-900"
+        >
+          Clear All
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen text-[var(--text-body)] pt-6">
+    <div className="min-h-screen text-[var(--text-body)] pt-8 pb-16 bg-[var(--bg-slate)] transition-colors duration-300">
+      
+      {/* PAGE HEADER */}
       <section className="relative overflow-hidden">
-        <div className="relative mx-auto max-w-7xl px-4 pb-4 pt-12 sm:px-6 lg:px-8">
-          <div className="max-w-3xl">
-            <p className="text-sm font-bold uppercase tracking-[0.22em] text-[#E85D83] dark:text-[#F06D91]">Venue discovery</p>
-            <h1 className="mt-3 text-4xl font-extrabold leading-tight text-[#1C1917] dark:text-[#FFF7F5] md:text-5xl">
-              Find the right venue without the planning clutter
+        <div className="relative mx-auto max-w-6xl px-6 pb-4 flex flex-col gap-2">
+          <div className="max-w-3xl flex flex-col gap-2.5">
+            <span className="text-xs font-bold uppercase tracking-wider text-primary">Venue Discovery</span>
+            <h1 className="font-serif text-3xl md:text-5xl font-extrabold text-[var(--text-dark)] leading-tight tracking-wide">
+              Find the perfect wedding venue
             </h1>
-            <p className="mt-3 text-base text-[#57534E] dark:text-[#C8BCC0]">
-              Search, filter, shortlist, compare, and send inquiries from one clean flow.
+            <p className="text-sm md:text-base text-[var(--text-muted)] font-medium leading-relaxed max-w-[620px]">
+              Search, filter, compare, and send inquiries from one clean planning flow.
             </p>
           </div>
 
-          <div className="mt-6 bg-white dark:bg-[#211C1F] border border-[#E5E7EB] dark:border-white/10 rounded-2xl shadow-md shadow-stone-200/50 dark:shadow-none overflow-hidden">
+          {/* Collapsible Filter Panel (Desktop only) */}
+          <div className="hidden lg:block mt-8 bg-[var(--bg-card)] border border-[var(--border-medium)] rounded-2xl shadow-sm overflow-hidden transition-all duration-300">
             {/* Header row / toggle bar inside panel */}
-            <div className="flex items-center justify-between border-b border-[var(--border-light)] bg-stone-50/40 dark:bg-stone-900/10">
+            <div className="flex items-center justify-between border-b border-[var(--border-light)] bg-stone-50/20 dark:bg-stone-900/5">
               <button
                 type="button"
                 onClick={() => setShowFilters(!showFilters)}
                 aria-expanded={showFilters}
-                className="flex-1 flex items-center justify-between gap-5 p-4 md:px-6 md:py-4 hover:bg-[#FFFDFB] dark:hover:bg-[#262024] transition text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#E85D83]/20"
+                className="flex-1 flex items-center justify-between gap-5 p-5 hover:bg-primary/5 transition-all text-left cursor-pointer focus:outline-none focus-visible:bg-primary/5"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500/10 shadow-sm shrink-0">
-                    <SlidersHorizontal className="text-[#E85D83] dark:text-[#F06D91]" size={20} />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary shadow-sm shrink-0 select-none">
+                    <SlidersHorizontal size={18} />
                   </div>
                   <div>
-                    <h2 className="text-base md:text-lg font-bold text-[var(--text-dark)] flex flex-wrap items-center gap-2">
+                    <h2 className="text-base font-bold text-[var(--text-dark)] flex flex-wrap items-center gap-2">
                       <span>Filter Options</span>
                       {activeFilterCount > 0 && (
-                        <span className="inline-flex items-center justify-center bg-[#E11D48] dark:bg-[#F06D91] text-white text-[10px] md:text-xs font-bold px-2.5 py-0.5 rounded-full shrink-0 shadow-sm">
+                        <span className="inline-flex items-center justify-center bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 shadow-sm select-none">
                           {activeFilterCount} Active
                         </span>
                       )}
-                      <span className="inline-flex items-center justify-center text-[10px] md:text-xs font-bold text-[#E85D83] dark:text-[#F06D91] bg-rose-500/10 dark:bg-rose-500/20 px-2.5 py-0.5 rounded-md shrink-0 select-none shadow-sm">
+                      <span className="inline-flex items-center justify-center text-[10px] font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-md shrink-0 select-none shadow-sm">
                         {resultText}
                       </span>
                     </h2>
-                    <p className="text-xs text-[#756B70] dark:text-[#C8BCC0] mt-0.5">
-                      {showFilters ? 'Click to collapse filters' : 'Click to expand filters'}
+                    <p className="text-xs text-[var(--text-muted)] font-semibold mt-0.5 select-none">
+                      {showFilters ? 'Click to collapse filter panel' : 'Click to expand filter panel'}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-extrabold text-[#E85D83] dark:text-[#F06D91] uppercase tracking-wider hidden sm:inline">
+                <div className="flex items-center gap-3 select-none">
+                  <span className="text-xs font-bold text-primary uppercase tracking-wider">
                     {showFilters ? 'Collapse' : 'Expand'}
                   </span>
                   <motion.div
                     animate={{ rotate: showFilters ? 180 : 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <ChevronDown className="text-[#756B70] dark:text-[#C8BCC0]" size={20} />
+                    <ChevronDown className="text-[var(--text-muted)]" size={18} />
                   </motion.div>
                 </div>
               </button>
               
-              <div className="pr-4 md:pr-6 shrink-0 flex items-center">
-                <button 
-                  type="button"
+              <div className="pr-5 shrink-0 flex items-center select-none">
+                <Button 
+                  variant="outline"
+                  size="sm"
                   onClick={handleClearFilters} 
-                  className="rounded-xl border border-[var(--border-light)] hover:bg-[#FFF8F3] dark:hover:bg-[#2A2327] px-4 py-2 text-xs font-bold text-[#E85D83] dark:text-[#F06D91] transition flex items-center gap-1.5 cursor-pointer shadow-sm"
+                  className="text-primary border-primary/20 hover:bg-primary hover:text-white"
                 >
                   Clear all
-                </button>
+                </Button>
               </div>
             </div>
 
             {/* Active filter summary row */}
             {activeTags.length > 0 && (
-              <div className="flex items-center gap-2 overflow-x-auto py-2.5 px-4 md:px-6 border-b border-[var(--border-light)] bg-stone-50/20 dark:bg-stone-900/5 max-w-full scrollbar-none select-none">
-                <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#756B70] dark:text-[#C8BCC0] shrink-0 mr-1">
-                  Active:
+              <div className="flex items-center gap-2 overflow-x-auto py-3 px-5 border-b border-[var(--border-light)] max-w-full select-none">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] shrink-0 mr-1.5">
+                  Active Filters:
                 </span>
                 <div className="flex items-center gap-2 max-w-full">
                   <AnimatePresence>
@@ -485,19 +744,19 @@ export default function Venues() {
                         initial={{ scale: 0.8, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0.8, opacity: 0 }}
-                        className="inline-flex items-center gap-1 bg-stone-100 dark:bg-[#2C2428] border border-stone-200 dark:border-white/5 rounded-full pl-3 pr-1.5 py-0.5 text-xs text-[#292524] dark:text-[#FFF7F5] shrink-0 shadow-sm"
+                        className="inline-flex items-center gap-1 bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-full pl-3 pr-1.5 py-0.5 text-xs text-[var(--text-body)] shrink-0 shadow-sm"
                       >
-                        <span className="truncate max-w-[150px] font-medium capitalize">{tag.label}</span>
+                        <span className="truncate max-w-[150px] font-semibold capitalize">{tag.label}</span>
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             tag.onRemove();
                           }}
-                          className="h-5 w-5 rounded-full flex items-center justify-center text-[#756B70] dark:text-[#C8BCC0] hover:bg-stone-200 dark:hover:bg-white/10 hover:text-[#E11D48] dark:hover:text-[#F06D91] transition cursor-pointer"
+                          className="h-4.5 w-4.5 rounded-full flex items-center justify-center text-[var(--text-muted)] hover:bg-primary/10 hover:text-primary transition cursor-pointer"
                           aria-label={`Remove filter: ${tag.label}`}
                         >
-                          <svg className="h-3 w-3 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                          <svg className="h-2.5 w-2.5 stroke-[3]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
                             <line x1="6" y1="6" x2="18" y2="18"></line>
                           </svg>
@@ -518,263 +777,83 @@ export default function Venues() {
                   transition={{ duration: 0.25, ease: 'easeInOut' }}
                   className="overflow-hidden"
                 >
-                  <div className="p-5 md:p-6">
-
-            {/* Filter grid groups */}
-            <div className="space-y-6">
-              {/* PRIMARY FILTERS GROUP */}
-              <div>
-                <h3 className="text-xs font-extrabold uppercase tracking-widest text-[#C43C62] dark:text-[#F06D91] mb-3">Primary Filters</h3>
-                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-                  <div>
-                    <label className={labelClass}>State</label>
-                    <div className={fieldClass}>
-                      <MapPin className="text-[#E85D83] dark:text-[#F06D91] shrink-0" size={16} />
-                      <div className="relative w-full flex items-center">
-                        <select value={filters.state || ''} onChange={(e) => handleStateChange(e.target.value)} className="w-full bg-transparent text-sm text-[#292326] dark:text-[#FFF7F5] outline-none pr-6 appearance-none cursor-pointer">
-                          <option value="">All States</option>
-                          <option value="rajasthan">Rajasthan</option>
-                          <option value="goa">Goa</option>
-                          <option value="maharashtra">Maharashtra</option>
-                          <option value="delhi ncr">Delhi NCR</option>
-                          <option value="karnataka">Karnataka</option>
-                        </select>
-                        <ChevronDown size={14} className="absolute right-0 text-[#756B70] dark:text-[#C8BCC0] pointer-events-none" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className={labelClass}>City</label>
-                    <div className={fieldClass}>
-                      <MapPin className="text-[#E85D83] dark:text-[#F06D91] shrink-0" size={16} />
-                      <div className="relative w-full flex items-center">
-                        <select value={filters.city || ''} onChange={(e) => handleFilterChange('city', e.target.value)} className="w-full bg-transparent text-sm text-[#292326] dark:text-[#FFF7F5] outline-none pr-6 appearance-none cursor-pointer">
-                          <option value="">All Cities</option>
-                          {citiesForSelectedState.map((city) => (
-                            <option key={city} value={city} className="capitalize">{city}</option>
-                          ))}
-                        </select>
-                        <ChevronDown size={14} className="absolute right-0 text-[#756B70] dark:text-[#C8BCC0] pointer-events-none" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className={labelClass}>Search</label>
-                    <div className={fieldClass}>
-                      <Search className="text-[#E85D83] dark:text-[#F06D91] shrink-0" size={16} />
-                      <input type="text" placeholder="Venue name..." value={localSearch} onChange={(e) => setLocalSearch(e.target.value)} className={inputClass} />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className={labelClass}>Venue Type</label>
-                    <div className={fieldClass}>
-                      <Building2 className="text-[#E85D83] dark:text-[#F06D91] shrink-0" size={16} />
-                      <div className="relative w-full flex items-center">
-                        <select value={filters.venueType || ''} onChange={(e) => handleFilterChange('venueType', e.target.value)} className="w-full bg-transparent text-sm text-[#292326] dark:text-[#FFF7F5] outline-none pr-6 appearance-none cursor-pointer">
-                          <option value="">All Types</option>
-                          <option value="banquet">Banquet</option>
-                          <option value="resort">Resort</option>
-                          <option value="lawn">Lawn</option>
-                          <option value="hotel">Hotel</option>
-                          <option value="club">Club</option>
-                        </select>
-                        <ChevronDown size={14} className="absolute right-0 text-[#756B70] dark:text-[#C8BCC0] pointer-events-none" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* SPLIT GROUP: REQUIREMENTS & NEARBY SEARCH */}
-              <div className="grid gap-6 grid-cols-1 lg:grid-cols-12 border-t border-[var(--border-light)] pt-5">
-                {/* VENUE REQUIREMENTS */}
-                <div className="lg:col-span-7">
-                  <h3 className="text-xs font-extrabold uppercase tracking-widest text-[#C43C62] dark:text-[#F06D91] mb-3">Venue Requirements</h3>
-                  <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
-                    {/* Price Range */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className={labelClass}>Price Range (INR)</label>
-                      <div className="flex items-center gap-1.5">
-                        <div className={fieldClass}>
-                          <span className="text-xs font-bold text-[#756B70] dark:text-[#C8BCC0] select-none shrink-0">Min</span>
-                          <input type="number" placeholder="0" value={filters.minPrice || ''} onChange={(e) => handleFilterChange('minPrice', e.target.value)} className={inputClass} />
-                        </div>
-                        <span className="text-[var(--text-muted)] font-bold shrink-0">—</span>
-                        <div className={fieldClass}>
-                          <span className="text-xs font-bold text-[#756B70] dark:text-[#C8BCC0] select-none shrink-0">Max</span>
-                          <input type="number" placeholder="Max" value={filters.maxPrice || ''} onChange={(e) => handleFilterChange('maxPrice', e.target.value)} className={inputClass} />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Guest Capacity */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className={labelClass}>Guest Capacity</label>
-                      <div className="flex items-center gap-1.5">
-                        <div className={fieldClass}>
-                          <span className="text-xs font-bold text-[#756B70] dark:text-[#C8BCC0] select-none shrink-0">Min</span>
-                          <input type="number" placeholder="0" value={filters.minCapacity || ''} onChange={(e) => handleFilterChange('minCapacity', e.target.value)} className={inputClass} />
-                        </div>
-                        <span className="text-[var(--text-muted)] font-bold shrink-0">—</span>
-                        <div className={fieldClass}>
-                          <span className="text-xs font-bold text-[#756B70] dark:text-[#C8BCC0] select-none shrink-0">Max</span>
-                          <input type="number" placeholder="Max" value={filters.maxCapacity || ''} onChange={(e) => handleFilterChange('maxCapacity', e.target.value)} className={inputClass} />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Min Rating */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className={labelClass}>Min Rating</label>
-                      <div className={fieldClass}>
-                        <div className="relative w-full flex items-center">
-                          <select value={filters.minRating || ''} onChange={(e) => handleFilterChange('minRating', e.target.value)} className="w-full bg-transparent text-sm text-[#292326] dark:text-[#FFF7F5] outline-none pr-6 appearance-none cursor-pointer">
-                            <option value="">Any Rating</option>
-                            <option value="3">3+ ★</option>
-                            <option value="4">4+ ★</option>
-                            <option value="4.5">4.5+ ★</option>
-                          </select>
-                          <ChevronDown size={14} className="absolute right-0 text-[#756B70] dark:text-[#C8BCC0] pointer-events-none" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* NEARBY SEARCH */}
-                <div className="lg:col-span-5">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-xs font-extrabold uppercase tracking-widest text-[#C43C62] dark:text-[#F06D91]">Nearby Search</h3>
-                    <button
-                      type="button"
-                      onClick={handleGetCurrentLocation}
-                      className="text-xs font-extrabold text-[#E85D83] dark:text-[#F06D91] flex items-center gap-1 hover:text-[#C43C62] transition cursor-pointer"
-                    >
-                      <Navigation size={11} className="fill-current" />
-                      <span>Use current location</span>
-                    </button>
-                  </div>
-                  <div className="grid gap-3 grid-cols-3">
-                    <div className="col-span-2">
-                      <label className={labelClass}>Location / Area</label>
-                      <div className={fieldClass}>
-                        <div className="relative w-full flex items-center">
-                          <select
-                            value={hasCustomCoords ? 'custom' : (activeLocationIndex === -1 ? '' : activeLocationIndex)}
-                            onChange={(e) => handleLocationSelect(e.target.value)}
-                            className="w-full bg-transparent text-sm text-[#292326] dark:text-[#FFF7F5] outline-none pr-6 appearance-none cursor-pointer"
-                          >
-                            <option value="">Select area...</option>
-                            {hasCustomCoords && <option value="custom">📍 Custom Map Coords</option>}
-                            {presetLocations.map((loc, idx) => (
-                              <option key={loc.name} value={idx}>{loc.name}</option>
-                            ))}
-                          </select>
-                          <ChevronDown size={14} className="absolute right-0 text-[#756B70] dark:text-[#C8BCC0] pointer-events-none" />
-                        </div>
-                      </div>
-                    </div>
-                    <div>
-                      <label className={labelClass}>Radius (Km)</label>
-                      <div className={fieldClass}>
-                        <input type="number" placeholder="Km" value={filters.radiusKm || ''} onChange={(e) => handleFilterChange('radiusKm', e.target.value)} className={inputClass} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* AMENITIES */}
-              <div className="border-t border-[var(--border-light)] pt-5">
-                <h3 className="text-xs font-extrabold uppercase tracking-widest text-[#C43C62] dark:text-[#F06D91] mb-3">Amenities</h3>
-                <div className="flex flex-wrap gap-2.5">
-                  {amenities.map((amenity) => {
-                    const isSelected = filters.amenities?.includes(amenity);
-                    return (
-                      <button
-                        key={amenity}
-                        type="button"
-                        onClick={() => toggleAmenity(amenity)}
-                        className={`rounded-full px-4 py-2 text-xs font-bold capitalize border transition-all flex items-center gap-1.5 cursor-pointer ${
-                          isSelected
-                          ? 'bg-[#E11D48] dark:bg-[#F06D91] text-white border-transparent shadow-sm'
-                          : 'bg-transparent text-[#292524] dark:text-[#C8BCC0] border-stone-300 dark:border-white/10 hover:bg-[#FAF8F5] dark:hover:bg-[#2A2327]'
-                        }`}
-                      >
-                        {isSelected && <Check size={12} className="stroke-[3]" />}
-                        <span>{amenity}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* SPACE PREFERENCE */}
-              <div className="border-t border-[var(--border-light)] pt-5">
-                <h3 className="text-xs font-extrabold uppercase tracking-widest text-[#C43C62] dark:text-[#F06D91] mb-3">Space Preference</h3>
-                <div className="flex flex-wrap gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => handleFilterChange('indoor', filters.indoor === 'true' ? '' : 'true')}
-                    className={`rounded-full px-4 py-2 text-xs font-bold capitalize border transition-all flex items-center gap-1.5 cursor-pointer ${
-                      filters.indoor === 'true'
-                      ? 'bg-[#E11D48] dark:bg-[#F06D91] text-white border-transparent shadow-sm'
-                      : 'bg-transparent text-[#292524] dark:text-[#C8BCC0] border-stone-300 dark:border-white/10 hover:bg-[#FAF8F5] dark:hover:bg-[#2A2327]'
-                    }`}
-                  >
-                    {filters.indoor === 'true' && <Check size={12} className="stroke-[3]" />}
-                    <span>Indoor</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleFilterChange('outdoor', filters.outdoor === 'true' ? '' : 'true')}
-                    className={`rounded-full px-4 py-2 text-xs font-bold capitalize border transition-all flex items-center gap-1.5 cursor-pointer ${
-                      filters.outdoor === 'true'
-                      ? 'bg-[#E11D48] dark:bg-[#F06D91] text-white border-transparent shadow-sm'
-                      : 'bg-transparent text-[#292524] dark:text-[#C8BCC0] border-stone-300 dark:border-white/10 hover:bg-[#FAF8F5] dark:hover:bg-[#2A2327]'
-                    }`}
-                  >
-                    {filters.outdoor === 'true' && <Check size={12} className="stroke-[3]" />}
-                    <span>Outdoor</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-                    {/* Submit controls inside panel */}
-                    <div className="mt-6 flex flex-wrap gap-3 border-t border-[var(--border-light)] pt-4">
-                      <button type="button" onClick={handleApplyFilters} className="rounded-xl bg-[#E85D83] hover:bg-[#C43C62] dark:bg-[#F06D91] dark:hover:bg-[#E85D83] px-6 py-2.5 text-xs font-bold text-white transition hover:-translate-y-[1px] shadow-sm cursor-pointer">
-                        Apply Filters
-                      </button>
-                    </div>
+                  <div className="p-6">
+                    {renderFilterContent()}
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
+
+          {/* Mobile Filter Button (lg:hidden) */}
+          <div className="lg:hidden mt-4 flex items-center justify-between gap-3 select-none">
+            <Button
+              variant="outline"
+              className="w-full flex justify-between items-center bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-850 px-5 py-3 rounded-xl shadow-sm text-stone-700 dark:text-stone-300"
+              onClick={() => setIsMobileFilterOpen(true)}
+              leftIcon={<SlidersHorizontal size={14} />}
+              rightIcon={
+                activeFilterCount > 0 && (
+                  <Badge variant="primary" className="bg-primary text-white border-transparent py-0 px-2 font-bold ml-2 shrink-0">
+                    {activeFilterCount}
+                  </Badge>
+                )
+              }
+            >
+              <span>Filter Options</span>
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={handleClearFilters}
+              disabled={activeFilterCount === 0}
+              className="px-4 py-3 bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-850 shrink-0 text-red-600 border-red-200/50"
+              title="Clear all"
+            >
+              <Trash2 size={15} />
+            </Button>
+          </div>
         </div>
       </section>
 
-      <div className="mx-auto mt-6 max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
-        {error && <div className="mb-4 rounded-lg bg-red-100 p-4 text-red-700">{error}</div>}
+      {/* MOBILE FILTERS MODAL */}
+      <Modal
+        isOpen={isMobileFilterOpen}
+        onClose={() => setIsMobileFilterOpen(false)}
+        title="Filter Venues"
+        size="lg"
+      >
+        <div className="py-2">
+          {renderFilterContent()}
+        </div>
+      </Modal>
 
-        {/* Split screen outer container, always displayed unless there is an error */}
+      {/* SPLIT SECTION: LISTINGS & MAP */}
+      <div className="mx-auto mt-6 max-w-6xl px-6">
+        
+        {/* Error Handling */}
+        {error && (
+          <ErrorState 
+            title="Unable to load venues"
+            message={error}
+            onRetry={fetchVenues}
+          />
+        )}
+
         {!error && (
           <div className="flex flex-col lg:flex-row gap-8 items-start">
+            
             {/* Left Column: Listings or Loading Skeletons */}
             <div className={`w-full lg:w-3/5 flex-1 ${mobileView === 'list' ? 'block' : 'hidden lg:block'}`}>
+              
               {isLoading ? (
                 <div>
-                  <div className="mb-8 flex items-center justify-between">
-                    <div className="h-7 w-48 animate-pulse rounded bg-stone-200 dark:bg-stone-800/40" />
-                    <div className="h-11 w-44 animate-pulse rounded bg-stone-200 dark:bg-stone-800/40" />
+                  <div className="mb-6 flex items-center justify-between select-none">
+                    <div className="h-5 w-32 animate-pulse rounded-lg bg-stone-200 dark:bg-stone-800/40" />
+                    <div className="h-9 w-40 animate-pulse rounded-lg bg-stone-200 dark:bg-stone-800/40" />
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     {Array.from({ length: pagination.limit || 6 }).map((_, idx) => (
-                      <div key={idx} className="h-full max-w-md mx-auto sm:max-w-none w-full">
+                      <div key={idx} className="w-full">
                         <VenueCardSkeleton />
                       </div>
                     ))}
@@ -782,46 +861,44 @@ export default function Venues() {
                 </div>
               ) : venues.length > 0 ? (
                 <div>
-                  <div className="mb-8 flex items-center justify-between">
-                    <p className="text-lg text-[var(--text-muted)]">
-                      Found <span className="font-semibold text-[#cf5577]">{venues.length}</span> venues
+                  <div className="mb-6 flex items-center justify-between select-none">
+                    <p className="text-sm font-semibold text-[var(--text-muted)]">
+                      Found <span className="text-primary font-bold">{venues.length}</span> venues
                       {pagination.total > venues.length && <span> of {pagination.total}</span>}
                     </p>
-                    <div className="flex items-center gap-2 md:gap-3">
+                    <div className="flex items-center gap-2 shrink-0">
                       {/* Sorting dropdown */}
-                      <div className="relative flex items-center bg-white/80 dark:bg-[#211C1F] border border-[#E5E7EB] dark:border-white/10 rounded-lg px-2.5 py-1.5 h-11 shadow-sm focus-within:border-[#E85D83] dark:focus-within:border-[#F06D91] transition-all">
-                        <select
-                          value={filters.sort || ''}
-                          onChange={(e) => handleFilterChange('sort', e.target.value)}
-                          className="bg-transparent text-xs font-bold text-[#292524] dark:text-[#FFF7F5] outline-none pr-5 appearance-none cursor-pointer focus:outline-none"
-                          aria-label="Sort options"
-                        >
-                          <option value="" className="dark:bg-[#211C1F] text-[#292524] dark:text-[#FFF7F5]">Sort: Recommended</option>
-                          <option value="rating-desc" className="dark:bg-[#211C1F] text-[#292524] dark:text-[#FFF7F5]">Rating: High to Low</option>
-                          <option value="price-asc" className="dark:bg-[#211C1F] text-[#292524] dark:text-[#FFF7F5]">Price: Low to High</option>
-                          <option value="price-desc" className="dark:bg-[#211C1F] text-[#292524] dark:text-[#FFF7F5]">Price: High to Low</option>
-                          <option value="capacity-asc" className="dark:bg-[#211C1F] text-[#292524] dark:text-[#FFF7F5]">Capacity: Low to High</option>
-                          <option value="capacity-desc" className="dark:bg-[#211C1F] text-[#292524] dark:text-[#FFF7F5]">Capacity: High to Low</option>
-                        </select>
-                        <ChevronDown size={12} className="absolute right-3 text-[#756B70] dark:text-[#C8BCC0] pointer-events-none" />
-                      </div>
+                      <Select
+                        value={filters.sort || ''}
+                        onChange={(e) => handleFilterChange('sort', e.target.value)}
+                        className="w-40 md:w-48 text-xs shrink-0"
+                        aria-label="Sort options"
+                      >
+                        <option value="">Recommended</option>
+                        <option value="rating-desc">Rating: High to Low</option>
+                        <option value="price-asc">Price: Low to High</option>
+                        <option value="price-desc">Price: High to Low</option>
+                        <option value="capacity-asc">Capacity: Low to High</option>
+                        <option value="capacity-desc">Capacity: High to Low</option>
+                      </Select>
 
-                      <button className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#ffd8c7] text-[#cf5577] clay-button shrink-0" aria-label="Grid view">
-                        <Grid2X2 size={18} />
+                      <button className="hidden sm:flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0" aria-label="Grid view">
+                        <Grid2X2 size={15} />
                       </button>
-                      <button className="flex h-11 w-11 items-center justify-center rounded-lg bg-white/70 text-[var(--text-muted)] clay-button shrink-0" aria-label="List view">
-                        <List size={18} />
+                      <button className="hidden sm:flex h-9 w-9 items-center justify-center rounded-xl bg-white dark:bg-stone-900 text-[var(--text-muted)] border border-stone-200 dark:border-stone-850 shrink-0" aria-label="List view">
+                        <List size={15} />
                       </button>
                     </div>
                   </div>
 
+                  {/* Listings Grid */}
                   <motion.div
-                    className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-6"
+                    className="grid grid-cols-1 sm:grid-cols-2 gap-6"
                     initial="hidden"
                     animate="visible"
                     variants={{
                       hidden: { opacity: 0 },
-                      visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
+                      visible: { opacity: 1, transition: { staggerChildren: 0.05 } },
                     }}
                   >
                     {venues.map((venue) => (
@@ -830,59 +907,64 @@ export default function Venues() {
                         id={`venue-card-${venue._id}`}
                         onMouseEnter={() => setHoveredVenueId(venue._id)}
                         onMouseLeave={() => setHoveredVenueId(null)}
-                        className="h-full max-w-md mx-auto sm:max-w-none w-full"
-                        variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }}
-                        transition={{ duration: 0.25 }}
+                        className="w-full h-full"
+                        variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }}
+                        transition={{ duration: 0.25, ease: 'easeOut' }}
                       >
                         <VenueCard venue={venue} />
                       </motion.div>
                     ))}
                   </motion.div>
 
+                  {/* Pagination controls */}
                   {pagination.totalPages > 1 && (
-                    <div className="mt-10 flex items-center justify-center gap-4">
-                      <button onClick={() => dispatch(setPage(Math.max(1, pagination.page - 1)))} disabled={pagination.page === 1} className="rounded-lg bg-white/70 px-5 py-2 text-[var(--text-body)] disabled:opacity-50 clay-button">
+                    <div className="mt-12 flex items-center justify-center gap-4 select-none">
+                      <Button 
+                        variant="outline"
+                        onClick={() => dispatch(setPage(Math.max(1, pagination.page - 1)))} 
+                        disabled={pagination.page === 1}
+                        className="py-2.5 px-4 font-bold border-stone-200 dark:border-stone-800"
+                      >
                         Previous
-                      </button>
-                      <span className="text-[var(--text-body)]">Page {pagination.page} of {pagination.totalPages}</span>
-                      <button onClick={() => dispatch(setPage(Math.min(pagination.totalPages, pagination.page + 1)))} disabled={pagination.page === pagination.totalPages} className="rounded-lg bg-white/70 px-5 py-2 text-[var(--text-body)] disabled:opacity-50 clay-button">
+                      </Button>
+                      <span className="text-sm font-semibold text-[var(--text-dark)]">
+                        Page {pagination.page} of {pagination.totalPages}
+                      </span>
+                      <Button 
+                        variant="outline"
+                        onClick={() => dispatch(setPage(Math.min(pagination.totalPages, pagination.page + 1)))} 
+                        disabled={pagination.page === pagination.totalPages}
+                        className="py-2.5 px-4 font-bold border-stone-200 dark:border-stone-800"
+                      >
                         Next
-                      </button>
+                      </Button>
                     </div>
                   )}
                 </div>
               ) : (
-                <motion.div
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.35 }}
-                  className="mt-8 py-20 px-6 text-center clay-card flex flex-col items-center justify-center border border-[var(--border-light)] rounded-2xl bg-white dark:bg-[#211C1F] shadow-sm"
-                >
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-500/10 mb-5 shadow-sm text-[#E85D83] dark:text-[#F06D91]">
-                    <Search size={32} />
-                  </div>
-                  <h3 className="text-2xl font-extrabold text-[var(--text-dark)] mb-2">No venues found</h3>
-                  <p className="text-sm text-[var(--text-muted)] max-w-md mb-6 leading-relaxed">
-                    {filters.search ? (
-                      <span>No results match "<span className="font-semibold text-[#E85D83] dark:text-[#F06D91]">{filters.search}</span>". Try checking your spelling or clearing filters.</span>
-                    ) : (
-                      <span>Try adjusting or clearing your filters to find exactly what you are looking for.</span>
-                    )}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleClearFilters}
-                    className="rounded-xl bg-[#E85D83] hover:bg-[#C43C62] dark:bg-[#F06D91] dark:hover:bg-[#E85D83] px-6 py-3 text-xs font-bold text-white transition hover:-translate-y-[1px] shadow-sm cursor-pointer"
-                  >
-                    Clear All Filters
-                  </button>
-                </motion.div>
+                <EmptyState 
+                  title="No venues match your filters"
+                  description={
+                    filters.search 
+                      ? `No search results for "${filters.search}". Check your spelling or clear filter categories.`
+                      : "Try adjusting your filters (like state, capacity, or nearby search radius) to find matching wedding venues."
+                  }
+                  action={
+                    <Button 
+                      variant="primary" 
+                      onClick={handleClearFilters}
+                      className="shadow-sm"
+                    >
+                      Clear All Filters
+                    </Button>
+                  }
+                />
               )}
             </div>
 
-            {/* Right Column: Sticky Interactive Map (always visible, even during loading states) */}
-            <div className={`w-full lg:w-2/5 lg:sticky lg:top-[100px] z-10 shrink-0 ${
-              mobileView === 'map' ? 'block h-[calc(100vh-160px)] lg:h-[650px]' : 'hidden lg:block h-[400px] lg:h-[650px]'
+            {/* Right Column: Sticky Interactive Map */}
+            <div className={`w-full lg:w-2/5 lg:sticky lg:top-[112px] z-10 shrink-0 border border-stone-200/50 dark:border-stone-800/40 rounded-2xl overflow-hidden shadow-sm ${
+              mobileView === 'map' ? 'block h-[calc(100vh-180px)] lg:h-[620px]' : 'hidden lg:block h-[400px] lg:h-[620px]'
             }`}>
               <VenueMap
                 venues={venues}
@@ -897,19 +979,19 @@ export default function Venues() {
         )}
 
         {/* Floating Toggle Button for Mobile Screens */}
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 lg:hidden">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 lg:hidden select-none">
           <button
             onClick={() => setMobileView(mobileView === 'list' ? 'map' : 'list')}
-            className="bg-[#352c32] dark:bg-[#ffd8c7] text-[#FFF7F5] dark:text-[#352c32] px-5 py-2.5 rounded-full shadow-xl font-extrabold text-xs tracking-wider uppercase transition active:scale-95 flex items-center gap-2 border border-white/10 dark:border-none hover:shadow-2xl"
+            className="bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 px-6 py-3 rounded-full shadow-lg font-bold text-xs tracking-wider uppercase transition active:scale-95 flex items-center gap-2 border border-white/10 dark:border-none hover:shadow-xl"
           >
             {mobileView === 'list' ? (
               <>
-                <Map size={14} />
+                <Map size={13} />
                 <span>Show Map</span>
               </>
             ) : (
               <>
-                <List size={14} />
+                <List size={13} />
                 <span>Show List</span>
               </>
             )}

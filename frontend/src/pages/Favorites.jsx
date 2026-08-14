@@ -1,17 +1,27 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { Search, MapPin, Heart } from 'lucide-react';
+import { motion } from 'framer-motion';
+
 import VenueCard from '../components/VenueCard';
+import VenueCardSkeleton from '../components/VenueCardSkeleton';
 import { getFavoritesStart, getFavoritesSuccess, getFavoritesFailure, setFavoritesPage } from '../redux/favoritesSlice';
 import { favoritesAPI } from '../utils/api';
-import { Heart } from 'lucide-react';
-import { motion } from 'framer-motion';
+
+// UI components
+import Button from '../components/ui/Button';
+import Input from '../components/ui/Input';
+import Select from '../components/ui/Select';
+import { Card, CardContent } from '../components/ui/Card';
+import EmptyState from '../components/ui/EmptyState';
+import ErrorState from '../components/ui/ErrorState';
 
 export default function Favorites() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { favorites, isLoading, error, pagination } = useSelector((state) => state.favorites);
-  const { user } = useSelector((state) => state.auth);
+  const { favorites, isLoading, error, pagination } = useSelector((state) => state.favorites || { favorites: [], isLoading: false, error: null, pagination: { page: 1, limit: 9 } });
+  const { user } = useSelector((state) => state.auth || {});
   const [search, setSearch] = useState('');
   const [city, setCity] = useState('');
   const [sort, setSort] = useState('saved');
@@ -43,117 +53,149 @@ export default function Favorites() {
 
   if (!user) return null;
 
-  const inputClass = 'w-full clay-inset bg-transparent px-4 py-3 text-sm text-[var(--text-body)] outline-none placeholder:text-[var(--text-muted)] transition';
-
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 text-[var(--text-body)]">
-      <div className="mb-8">
-        <p className="text-sm font-bold uppercase tracking-[0.22em] text-[#cf5577]">Your Collection</p>
-        <h1 className="mt-3 text-4xl font-extrabold leading-tight text-[var(--text-dark)] md:text-5xl">My Favorite Venues</h1>
-      </div>
-
-      <div className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4 clay-card p-5">
-        <input
-          value={search}
-          onChange={(event) => {
-            setSearch(event.target.value);
-            dispatch(setFavoritesPage(1));
-          }}
-          placeholder="Search favorite venues..."
-          className={inputClass}
-        />
-        <input
-          value={city}
-          onChange={(event) => {
-            setCity(event.target.value);
-            dispatch(setFavoritesPage(1));
-          }}
-          placeholder="Filter by city..."
-          className={inputClass}
-        />
-        <select
-          value={sort}
-          onChange={(event) => {
-            setSort(event.target.value);
-            dispatch(setFavoritesPage(1));
-          }}
-          className={inputClass}
-        >
-          <option value="saved">Recently saved</option>
-          <option value="name">Name</option>
-          <option value="rating">Highest rated</option>
-          <option value="price-low">Price: low to high</option>
-          <option value="price-high">Price: high to low</option>
-        </select>
-      </div>
-
-      {error && (
-        <div className="mb-4 rounded-lg bg-red-100 p-4 text-red-700">
-          {error}
-        </div>
-      )}
-
-      {isLoading && (
-        <div className="flex items-center justify-center py-20">
-          <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-[#cf5577]" />
-        </div>
-      )}
-
-      {!isLoading && favorites.length > 0 && (
-        <>
-          <p className="text-lg text-[var(--text-muted)] mb-6">
-            You have <span className="font-semibold text-[#cf5577]">{pagination.total}</span> favorite venue{pagination.total > 1 ? 's' : ''}
+    <div className="min-h-screen text-[var(--text-body)] pt-8 pb-16 bg-[var(--bg-slate)] transition-colors duration-300">
+      <div className="mx-auto max-w-6xl px-6">
+        
+        {/* Page Header */}
+        <div className="mb-8 flex flex-col gap-2 select-none">
+          <span className="text-xs font-bold uppercase tracking-wider text-primary">Your Collection</span>
+          <h1 className="font-serif text-3xl md:text-5xl font-extrabold text-[var(--text-dark)] leading-tight tracking-wide">
+            My Favorite Venues
+          </h1>
+          <p className="text-sm text-[var(--text-muted)] font-medium leading-relaxed max-w-[500px]">
+            Keep all the wedding venues you love in one organized planning space.
           </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {favorites.map((venue) => (
-              <VenueCard key={venue._id} venue={venue} />
-            ))}
-          </div>
-          
-          {pagination.totalPages > 1 && (
-            <div className="mt-10 flex items-center justify-center gap-4">
-              <button
-                onClick={() => dispatch(setFavoritesPage(Math.max(1, pagination.page - 1)))}
-                disabled={pagination.page === 1}
-                className="rounded-lg bg-white/70 px-5 py-2 text-[var(--text-body)] disabled:opacity-50 clay-button"
-              >
-                Previous
-              </button>
-              <span className="text-[var(--text-body)]">Page {pagination.page} of {pagination.totalPages}</span>
-              <button
-                onClick={() => dispatch(setFavoritesPage(Math.min(pagination.totalPages, pagination.page + 1)))}
-                disabled={pagination.page === pagination.totalPages}
-                className="rounded-lg bg-white/70 px-5 py-2 text-[var(--text-body)] disabled:opacity-50 clay-button"
-              >
-                Next
-              </button>
+        </div>
+
+        {/* Filters Card */}
+        <Card className="mb-8 border border-[var(--border-medium)] shadow-sm">
+          <CardContent className="p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Input
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                dispatch(setFavoritesPage(1));
+              }}
+              placeholder="Search favorite venues..."
+              leftIcon={<Search size={14} className="text-[var(--text-muted)]" />}
+              aria-label="Search favorite venues"
+            />
+            
+            <Input
+              value={city}
+              onChange={(event) => {
+                setCity(event.target.value);
+                dispatch(setFavoritesPage(1));
+              }}
+              placeholder="Filter by city..."
+              leftIcon={<MapPin size={14} className="text-[var(--text-muted)]" />}
+              aria-label="Filter favorites by city"
+            />
+            
+            <Select
+              value={sort}
+              onChange={(event) => {
+                setSort(event.target.value);
+                dispatch(setFavoritesPage(1));
+              }}
+              aria-label="Sort options"
+            >
+              <option value="saved">Recently saved</option>
+              <option value="name">Name</option>
+              <option value="rating">Highest rated</option>
+              <option value="price-low">Price: low to high</option>
+              <option value="price-high">Price: high to low</option>
+            </Select>
+          </CardContent>
+        </Card>
+
+        {/* Error Handling */}
+        {error && (
+          <ErrorState 
+            title="Failed to fetch favorites"
+            message={error}
+            onRetry={fetchFavorites}
+          />
+        )}
+
+        {/* Loading skeletons grid */}
+        {isLoading && (
+          <div>
+            <div className="mb-6 flex items-center justify-between select-none">
+              <div className="h-5 w-40 animate-pulse rounded bg-stone-250 dark:bg-stone-800/40" />
             </div>
-          )}
-        </>
-      )}
-
-      {!isLoading && favorites.length === 0 && !error && (
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-8 py-16 px-6 text-center clay-card flex flex-col items-center justify-center border border-[var(--border-light)] rounded-2xl shadow-sm bg-white dark:bg-[#211C1F]"
-        >
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-500/10 mb-5 shadow-sm text-[#E85D83] dark:text-[#F06D91]">
-            <Heart className="fill-current text-[#E85D83] dark:text-[#F06D91]" size={28} />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: pagination.limit || 3 }).map((_, idx) => (
+                <div key={idx} className="w-full">
+                  <VenueCardSkeleton />
+                </div>
+              ))}
+            </div>
           </div>
-          <h3 className="text-xl font-bold text-[var(--text-dark)] mb-2">No Saved Favorites</h3>
-          <p className="max-w-md text-sm text-[var(--text-muted)] mb-6 leading-relaxed">
-            Browse wedding venues and save your favorite choices here to compare and track them.
-          </p>
-          <button
-            onClick={() => navigate('/venues')}
-            className="rounded-xl bg-[#E85D83] hover:bg-[#C43C62] dark:bg-[#F06D91] dark:hover:bg-[#E85D83] px-6 py-2.5 text-xs font-bold text-white transition hover:-translate-y-[1px] shadow-sm cursor-pointer"
-          >
-            Browse Venues
-          </button>
-        </motion.div>
-      )}
+        )}
+
+        {/* Favorites Listings Grid */}
+        {!isLoading && !error && favorites.length > 0 && (
+          <>
+            <div className="mb-6 select-none">
+              <p className="text-sm font-semibold text-[var(--text-muted)]">
+                You have <span className="font-bold text-primary">{pagination.total}</span> favorite venue{pagination.total > 1 ? 's' : ''}
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {favorites.map((venue) => (
+                <div key={venue._id} className="w-full">
+                  <VenueCard venue={venue} />
+                </div>
+              ))}
+            </div>
+            
+            {/* Pagination */}
+            {pagination.totalPages > 1 && (
+              <div className="mt-12 flex items-center justify-center gap-4 select-none">
+                <Button
+                  variant="outline"
+                  onClick={() => dispatch(setFavoritesPage(Math.max(1, pagination.page - 1)))}
+                  disabled={pagination.page === 1}
+                  className="py-2.5 px-4 font-bold border-stone-200 dark:border-stone-850"
+                >
+                  Previous
+                </Button>
+                <span className="text-sm font-semibold text-[var(--text-dark)]">
+                  Page {pagination.page} of {pagination.totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  onClick={() => dispatch(setFavoritesPage(Math.min(pagination.totalPages, pagination.page + 1)))}
+                  disabled={pagination.page === pagination.totalPages}
+                  className="py-2.5 px-4 font-bold border-stone-200 dark:border-stone-850"
+                >
+                  Next
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Empty Collection State */}
+        {!isLoading && !error && favorites.length === 0 && (
+          <EmptyState
+            title="No favorite venues yet"
+            description="Save venues you love while exploring wedding spaces to compare and coordinate choices."
+            action={
+              <Button 
+                variant="primary" 
+                onClick={() => navigate('/venues')}
+                className="shadow-sm font-bold"
+              >
+                Explore Venues
+              </Button>
+            }
+          />
+        )}
+      </div>
     </div>
   );
 }

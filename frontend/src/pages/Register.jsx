@@ -7,8 +7,14 @@ import { registerStart, registerSuccess, registerFailure } from '../redux/authSl
 import { authAPI } from '../utils/api';
 import { auth, googleProvider } from '../firebase';
 import { signInWithPopup } from 'firebase/auth';
-import { User, Mail, Lock, Sparkles } from 'lucide-react';
+import { User, Mail, Lock, Sparkles, Building2 } from 'lucide-react';
 import { SiGoogle } from 'react-icons/si';
+
+// UI components
+import Button from '../components/ui/Button';
+import Input from '../components/ui/Input';
+import Select from '../components/ui/Select';
+import { Card, CardContent } from '../components/ui/Card';
 
 const getGoogleSignInMessage = (error) => {
   switch (error?.code) {
@@ -39,7 +45,7 @@ const registerSchema = z.object({
 export default function Register() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { isLoading, error } = useSelector((state) => state.auth);
+  const { isLoading, error } = useSelector((state) => state.auth || { isLoading: false, error: null });
 
   const {
     register,
@@ -80,128 +86,159 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <div className="mx-auto flex min-h-screen max-w-7xl flex-col md:flex-row items-center">
-        <section className="hidden md:flex md:w-1/2 bg-slate-900 p-12 text-white">
-          <div className="space-y-6">
-            <div className="rounded-[2rem] bg-white/5 p-8 shadow-2xl shadow-black/20 backdrop-blur-xl">
-              <p className="text-sm uppercase tracking-[0.35em] text-slate-300">Create a new account</p>
-              <h1 className="mt-3 text-4xl font-semibold leading-tight">Your wedding planning journey starts here.</h1>
-              <p className="mt-4 max-w-md text-slate-300/80">Register as a customer or organizer and unlock powerful venue search, messaging, and event tools.</p>
+    <div className="min-h-screen bg-[var(--bg-slate)] text-[var(--text-body)] flex select-none">
+      <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col md:flex-row items-stretch">
+        
+        {/* Left Column: Premium Editorial panel (Desktop only) */}
+        <section className="hidden md:flex md:w-1/2 bg-stone-900 dark:bg-stone-950 p-12 text-white flex-col justify-between relative overflow-hidden border-r border-stone-850">
+          {/* Branding */}
+          <div className="relative z-10 flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white font-serif font-bold text-lg select-none">
+              W
+            </div>
+            <span className="font-serif text-lg font-bold tracking-wider uppercase">WedVenue</span>
+          </div>
+
+          <div className="relative z-10 my-auto max-w-md space-y-6">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-[0.35em] text-primary">Get Started</span>
+              <h1 className="mt-3 font-serif text-4xl font-extrabold leading-tight tracking-wide">
+                Your wedding planning journey starts here.
+              </h1>
+              <p className="mt-4 text-sm leading-relaxed text-stone-300">
+                Register as a customer or organizer and unlock powerful venue discovery filters, messenger updates, and planning tools.
+              </p>
             </div>
 
-            <div className="grid gap-4">
-              <div className="rounded-3xl bg-white/5 p-5 shadow-lg shadow-black/10">
-                <div className="flex items-center gap-3 text-sm font-semibold uppercase tracking-[0.22em] text-slate-200/80">
-                  <Sparkles className="h-5 w-5" /> Instant onboarding
+            <div className="space-y-4 pt-4">
+              <div className="flex gap-3 items-start bg-white/5 border border-white/10 rounded-2xl p-4 shadow-sm">
+                <Sparkles className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-stone-200">On-demand searches</h3>
+                  <p className="text-xs text-stone-300 mt-1 leading-normal">Instantly browse regional listings and configure radius settings.</p>
                 </div>
-                <p className="mt-3 text-sm leading-6 text-slate-300/80">Sign up fast with email or Google and start browsing venues right away.</p>
               </div>
-              <div className="rounded-3xl bg-white/5 p-5 shadow-lg shadow-black/10">
-                <div className="flex items-center gap-3 text-sm font-semibold uppercase tracking-[0.22em] text-slate-200/80">
-                  <User className="h-5 w-5" /> Organizer support
+              <div className="flex gap-3 items-start bg-white/5 border border-white/10 rounded-2xl p-4 shadow-sm">
+                <Building2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-stone-200">Organizer Dashboard</h3>
+                  <p className="text-xs text-stone-300 mt-1 leading-normal">Register as an organizer to list venues, manage calendar bookings, and answer inquiries.</p>
                 </div>
-                <p className="mt-3 text-sm leading-6 text-slate-300/80">Manage venue details, inquiries, and bookings from a polished dashboard.</p>
               </div>
             </div>
           </div>
+
+          <div className="relative z-10 text-xs text-stone-400 font-semibold select-none">
+            © {new Date().getFullYear()} WedVenue app. All rights reserved.
+          </div>
         </section>
 
-        <section className="flex w-full md:w-1/2 items-center justify-center p-8">
-          <div className="w-full max-w-md rounded-[2rem] bg-white p-8 shadow-2xl shadow-slate-200">
-            <div className="mb-8 text-center">
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-violet-600 text-white shadow-lg shadow-violet-200/60">
-                R
+        {/* Right Column: Authentication Form Panel */}
+        <section className="flex w-full md:w-1/2 items-center justify-center p-6 md:p-12">
+          <Card className="w-full max-w-md bg-white dark:bg-[#1A1618] border border-[var(--border-medium)] rounded-3xl p-6 md:p-8 shadow-sm">
+            <CardContent className="p-0">
+              <div className="mb-6 text-center">
+                <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-sm select-none">
+                  <User className="h-6 w-6" />
+                </div>
+                <h2 className="font-serif text-2xl font-bold text-[var(--text-dark)] leading-snug">Create your account</h2>
+                <p className="mt-1.5 text-xs font-semibold text-[var(--text-muted)]">
+                  Level up your venue planning experience today.
+                </p>
               </div>
-              <h2 className="text-3xl font-semibold">Create your account</h2>
-              <p className="mt-2 text-sm text-slate-500">Join WedVenue now and level up your venue planning experience.</p>
-            </div>
 
-            {error && <div className="mb-6 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+              {error && (
+                <div className="mb-4 rounded-xl border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-950/10 px-4 py-3 text-xs font-semibold text-red-700 dark:text-red-400 select-text">
+                  {error}
+                </div>
+              )}
 
-            <button
-              type="button"
-              onClick={handleGoogleSignIn}
-              className="mb-5 flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
-            >
-              <SiGoogle className="h-5 w-5 text-red-500" />
-              Continue with Google
-            </button>
+              {/* Social Login */}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleGoogleSignIn}
+                disabled={isLoading}
+                className="mb-5 w-full flex items-center justify-center gap-2 border-stone-200 dark:border-stone-850 bg-white dark:bg-stone-900 text-stone-700 dark:text-stone-300 font-bold"
+                leftIcon={<SiGoogle size={14} className="text-red-500" />}
+              >
+                Continue with Google
+              </Button>
 
-            <div className="relative mb-6 text-center text-xs uppercase tracking-[0.2em] text-slate-400">
-              <span className="bg-white px-3">Or register manually</span>
-            </div>
+              <div className="relative mb-5 text-center text-[10px] uppercase tracking-widest text-[var(--text-muted)] select-none">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-[var(--border-light)]" />
+                </div>
+                <span className="relative bg-white dark:bg-[#1A1618] px-3 font-bold">Or register manually</span>
+              </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Full name</label>
-                <input
+              {/* Registration Form fields */}
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <Input
+                  label="Full name"
                   type="text"
-                  {...register('name')}
-                  className="w-full bg-transparent text-sm text-slate-900 outline-none"
                   placeholder="Your full name"
+                  leftIcon={<User size={15} className="text-[var(--text-muted)]" />}
+                  error={errors.name?.message}
+                  {...register('name')}
                 />
-                {errors.name && <p className="mt-2 text-xs text-red-500">{errors.name.message}</p>}
-              </div>
 
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Email address</label>
-                <input
+                <Input
+                  label="Email address"
                   type="email"
-                  {...register('email')}
-                  className="w-full bg-transparent text-sm text-slate-900 outline-none"
                   placeholder="you@example.com"
+                  leftIcon={<Mail size={15} className="text-[var(--text-muted)]" />}
+                  error={errors.email?.message}
+                  {...register('email')}
                 />
-                {errors.email && <p className="mt-2 text-xs text-red-500">{errors.email.message}</p>}
-              </div>
 
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Account type</label>
-                <select
+                <Select
+                  label="Account type"
+                  error={errors.role?.message}
                   {...register('role')}
-                  className="w-full bg-transparent text-sm text-slate-900 outline-none cursor-pointer"
                 >
                   <option value="customer">Customer</option>
                   <option value="organizer">Organizer</option>
-                </select>
-              </div>
+                </Select>
 
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Password</label>
-                <input
+                <Input
+                  label="Password"
                   type="password"
+                  placeholder="Create a secure password"
+                  leftIcon={<Lock size={15} className="text-[var(--text-muted)]" />}
+                  error={errors.password?.message}
                   {...register('password')}
-                  className="w-full bg-transparent text-sm text-slate-900 outline-none"
-                  placeholder="Create a password"
                 />
-                {errors.password && <p className="mt-2 text-xs text-red-500">{errors.password.message}</p>}
-              </div>
 
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Confirm password</label>
-                <input
+                <Input
+                  label="Confirm password"
                   type="password"
+                  placeholder="Repeat your password"
+                  leftIcon={<Lock size={15} className="text-[var(--text-muted)]" />}
+                  error={errors.confirmPassword?.message}
                   {...register('confirmPassword')}
-                  className="w-full bg-transparent text-sm text-slate-900 outline-none"
-                  placeholder="Repeat password"
                 />
-                {errors.confirmPassword && <p className="mt-2 text-xs text-red-500">{errors.confirmPassword.message}</p>}
+
+                <Button
+                  type="submit"
+                  variant="primary"
+                  isLoading={isLoading}
+                  className="w-full py-3 font-bold shadow-sm"
+                >
+                  {isLoading ? 'Creating account...' : 'Create Account'}
+                </Button>
+              </form>
+
+              <div className="mt-6 text-center text-xs font-semibold text-[var(--text-muted)] border-t border-[var(--border-light)] pt-4 select-none">
+                Already registered?{' '}
+                <Link to="/login" className="font-bold text-primary hover:underline">
+                  Sign in
+                </Link>
               </div>
-
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full rounded-3xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-200/50 transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {isLoading ? 'Creating account…' : 'Create account'}
-              </button>
-            </form>
-
-            <div className="mt-8 rounded-3xl bg-slate-50 p-4 text-center text-sm text-slate-500">
-              Already registered? <Link to="/login" className="font-semibold text-violet-600 hover:text-violet-700">Sign in</Link>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </section>
+        
       </div>
     </div>
   );

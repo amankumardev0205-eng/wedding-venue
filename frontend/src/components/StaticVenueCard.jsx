@@ -6,13 +6,13 @@ export default function StaticVenueCard({ venue }) {
   const [isFavorited, setIsFavorited] = useState(false);
 
   return (
-    <div className="group overflow-hidden rounded-2xl clay-card transition-all duration-300 hover:-translate-y-1.5 flex flex-col h-full">
+    <div className="group overflow-hidden rounded-2xl border border-[var(--border-medium)] bg-white dark:bg-[#1A1618] shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
       {/* Venue Image */}
-      <div className="relative aspect-[3/2] w-full overflow-hidden shrink-0 bg-rose-50/10">
+      <div className="relative aspect-[3/2] w-full overflow-hidden shrink-0 bg-stone-100 dark:bg-stone-900/50">
         <img
           src={venue.image}
           alt={venue.name}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-103"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
           onError={handleImageError}
         />
@@ -23,14 +23,15 @@ export default function StaticVenueCard({ venue }) {
             e.stopPropagation();
             setIsFavorited(!isFavorited);
           }}
-          className="absolute right-3.5 top-3.5 h-9 w-9 rounded-full bg-white/70 dark:bg-black/40 backdrop-blur-md border border-white/40 dark:border-white/10 flex items-center justify-center text-slate-700 dark:text-white hover:scale-105 active:scale-95 transition-all shadow-sm z-10"
+          aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
+          className="absolute right-3.5 top-3.5 h-9 w-9 rounded-full bg-white/95 dark:bg-stone-900/95 backdrop-blur-sm border border-stone-200/50 dark:border-white/10 flex items-center justify-center text-stone-600 dark:text-stone-300 hover:scale-105 hover:text-primary active:scale-95 transition-all shadow-sm z-10"
         >
           <Heart
             size={16}
             className={`transition-colors ${
               isFavorited
-                ? 'fill-[#E85D83] text-[#E85D83] dark:fill-[#F06D91] dark:text-[#F06D91]'
-                : 'text-slate-700 dark:text-white'
+                ? 'fill-primary text-primary'
+                : 'text-stone-600 dark:text-stone-300'
             }`}
           />
         </button>
@@ -39,18 +40,18 @@ export default function StaticVenueCard({ venue }) {
       {/* Info Details */}
       <div className="p-5 flex-1 flex flex-col justify-between">
         <div>
-          <div className="flex justify-between items-start gap-2 mb-1.5">
-            <h3 className="font-extrabold text-base text-[var(--text-dark)] leading-snug truncate">
+          <div className="flex justify-between items-start gap-3 mb-2">
+            <h3 className="font-serif font-bold text-lg text-[var(--text-dark)] leading-tight group-hover:text-primary transition-colors line-clamp-1">
               {venue.name}
             </h3>
-            <div className="flex items-center gap-1 shrink-0 text-amber-500 font-bold text-xs bg-amber-500/10 px-2 py-0.5 rounded-full">
-              <Star size={12} className="fill-amber-500" />
+            <div className="flex items-center gap-1 shrink-0 text-amber-600 dark:text-amber-500 font-bold text-xs bg-amber-500/10 px-2 py-0.5 rounded-full select-none">
+              <Star size={11} className="fill-amber-500 stroke-amber-500" />
               <span>{venue.rating}</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] font-semibold mb-2">
-            <MapPin size={13} className="text-[#E85D83] dark:text-[#F06D91]" />
+          <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] font-semibold mb-3">
+            <MapPin size={13} className="text-primary shrink-0" />
             <span className="capitalize">{venue.city}</span>
           </div>
 
@@ -59,12 +60,12 @@ export default function StaticVenueCard({ venue }) {
           </p>
         </div>
 
-        <div className="pt-3 border-t border-[var(--border-light)] flex justify-between items-center text-xs shrink-0">
+        <div className="pt-4 border-t border-[var(--border-light)] flex justify-between items-center text-xs shrink-0 mt-auto">
           <div className="flex items-center gap-1.5 text-[var(--text-muted)] font-semibold">
-            <Users size={14} className="text-[var(--text-muted)]" />
-            <span>Up to {venue.capacity}</span>
+            <Users size={14} className="text-[var(--text-muted)] shrink-0" />
+            <span>Up to {venue.capacity} guests</span>
           </div>
-          <div className="font-extrabold text-[var(--text-dark)] text-sm">
+          <div className="font-bold text-primary text-sm">
             {venue.price}
           </div>
         </div>

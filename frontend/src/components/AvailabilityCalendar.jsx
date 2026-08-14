@@ -107,26 +107,26 @@ export default function AvailabilityCalendar({
   const isReadOnly = onDateSelect === null;
 
   return (
-    <div className="w-full bg-white rounded-2xl shadow-sm border border-white/50 p-4 font-sans select-none clay-card">
+    <div className="w-full bg-white dark:bg-stone-900/60 rounded-2xl shadow-sm border border-stone-200 dark:border-stone-850 p-4 font-sans select-none">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-md font-bold text-[var(--text-dark)] uppercase tracking-wider">
+        <h3 className="text-sm font-bold text-[var(--text-dark)] uppercase tracking-wider">
           {months[currentMonth]} {currentYear}
         </h3>
         <div className="flex gap-2">
           <button
             type="button"
             onClick={handlePrevMonth}
-            className="p-1.5 rounded-lg border border-[var(--border-light)] hover:bg-[var(--clay-btn-bg-neutral)] text-[var(--text-dark)] transition"
+            className="p-1.5 rounded-lg border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800 text-[var(--text-dark)] transition"
           >
-            <ChevronLeft size={16} />
+            <ChevronLeft size={15} />
           </button>
           <button
             type="button"
             onClick={handleNextMonth}
-            className="p-1.5 rounded-lg border border-[var(--border-light)] hover:bg-[var(--clay-btn-bg-neutral)] text-[var(--text-dark)] transition"
+            className="p-1.5 rounded-lg border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800 text-[var(--text-dark)] transition"
           >
-            <ChevronRight size={16} />
+            <ChevronRight size={15} />
           </button>
         </div>
       </div>
@@ -134,7 +134,7 @@ export default function AvailabilityCalendar({
       {/* Weekday Names */}
       <div className="grid grid-cols-7 gap-1 text-center mb-2">
         {daysOfWeek.map((day) => (
-          <div key={day} className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider py-1">
+          <div key={day} className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider py-1">
             {day}
           </div>
         ))}
@@ -159,19 +159,19 @@ export default function AvailabilityCalendar({
             const d = new Date(date);
             d.setHours(0, 0, 0, 0);
             if (d < today) {
-              cellClass += "bg-transparent opacity-25 text-[var(--text-muted)] cursor-not-allowed";
+              cellClass += "bg-transparent opacity-20 text-[var(--text-muted)] cursor-not-allowed";
             } else {
-              cellClass += "bg-red-500/10 text-red-400 border border-red-500/20 cursor-not-allowed";
+              cellClass += "bg-red-500/10 text-red-500 dark:text-red-400 border border-red-500/20 cursor-not-allowed";
               textClass += "line-through ";
             }
           } else if (isSelected) {
-            cellClass += "bg-[#e86f8f] text-white shadow-sm font-semibold scale-105";
+            cellClass += "bg-primary text-white shadow-sm font-semibold scale-102";
           } else if (isToday) {
-            cellClass += "bg-[#ffd8c7]/20 text-[#e86f8f] font-semibold ring-2 ring-[#e86f8f]/30";
+            cellClass += "bg-primary/10 text-primary font-semibold ring-2 ring-primary/20";
           } else {
-            cellClass += "hover:bg-[var(--clay-btn-bg-neutral)] text-[var(--text-body)]";
+            cellClass += "hover:bg-stone-100 dark:hover:bg-stone-800 text-[var(--text-body)]";
           }
- 
+
           return (
             <div
               key={date.toISOString()}
@@ -188,20 +188,20 @@ export default function AvailabilityCalendar({
           );
         })}
       </div>
- 
+
       {/* Legend */}
-      <div className="flex gap-4 items-center justify-center mt-4 pt-3 border-t border-[var(--border-light)] text-xs text-[var(--text-muted)]">
+      <div className="flex gap-4 items-center justify-center mt-4 pt-3 border-t border-[var(--border-light)] text-[10px] text-[var(--text-muted)] font-semibold select-none">
         <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#ffd8c7]/40 ring-1 ring-[#e86f8f]/30" />
+          <span className="w-2.5 h-2.5 rounded-full bg-primary/10 ring-1 ring-primary/20" />
           <span>Today</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-red-500/20 border border-red-500/30" />
+          <span className="w-2.5 h-2.5 rounded-full bg-red-500/10 border border-red-500/20" />
           <span>Booked</span>
         </div>
         {!isReadOnly && (
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded bg-[#e86f8f]" />
+            <span className="w-2.5 h-2.5 rounded bg-primary" />
             <span>Selected</span>
           </div>
         )}

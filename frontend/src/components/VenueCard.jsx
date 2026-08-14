@@ -1,19 +1,21 @@
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useState } from 'react';
-import { FaStar, FaMapMarkerAlt, FaUsers, FaHeart, FaBalanceScale } from 'react-icons/fa';
+import { Star, MapPin, Users, Heart, Scale } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { addFavoriteStart, addFavoriteSuccess, addFavoriteFailure, removeFavoriteStart, removeFavoriteSuccess, removeFavoriteFailure } from '../redux/favoritesSlice';
 import { addToCompare, removeFromCompare } from '../redux/compareSlice';
 import { favoritesAPI } from '../utils/api';
 import { getSrcSet, getVenueCardImageUrl, handleImageError } from '../utils/imageUtils';
+import Button from './ui/Button';
+import Badge from './ui/Badge';
 
 export default function VenueCard({ venue }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
-  const { favorites } = useSelector((state) => state.favorites);
-  const { selectedVenues, maxCompare } = useSelector((state) => state.compare);
+  const { user } = useSelector((state) => state.auth || {});
+  const { favorites } = useSelector((state) => state.favorites || { favorites: [] });
+  const { selectedVenues, maxCompare } = useSelector((state) => state.compare || { selectedVenues: [], maxCompare: 4 });
   const [isFavoriting, setIsFavoriting] = useState(false);
 
   const isFavorited = favorites.some((fav) => fav._id === venue._id);
@@ -71,12 +73,12 @@ export default function VenueCard({ venue }) {
   return (
     <motion.div
       onClick={handleViewDetails}
-      className="group h-full cursor-pointer overflow-hidden clay-card transition-transform flex flex-col"
-      whileHover={{ y: -5 }}
-      transition={{ duration: 0.2 }}
+      className="group h-full cursor-pointer overflow-hidden rounded-2xl border border-[var(--border-medium)] bg-white dark:bg-[#1A1618] shadow-sm hover:shadow-md transition-all duration-300 flex flex-col"
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
     >
       {/* Venue Image */}
-      <div className="relative h-52 w-full bg-[#f7ded6] overflow-hidden">
+      <div className="relative h-52 w-full bg-stone-100 dark:bg-stone-900/50 overflow-hidden shrink-0">
         {venue.images && venue.images.length > 0 ? (
           <picture>
             <source type="image/webp" srcSet={getSrcSet(venue.images[0].url)} />
@@ -92,112 +94,123 @@ export default function VenueCard({ venue }) {
             />
           </picture>
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-[var(--text-muted)]">
+          <div className="flex h-full w-full items-center justify-center text-[var(--text-muted)] text-sm font-semibold select-none">
             No image available
           </div>
         )}
         
         {/* Venue Type Badge */}
-        <div className="absolute left-3 top-3 rounded-lg bg-[#352c32]/85 backdrop-blur-sm px-2.5 py-1 shadow text-white text-[10px] font-bold uppercase tracking-wider select-none z-[5]">
+        <Badge 
+          variant="neutral" 
+          className="absolute left-3.5 top-3.5 bg-stone-900/80 text-white border-stone-900/40 backdrop-blur-sm text-[10px] uppercase font-bold py-1 select-none z-10"
+        >
           {venue.venueType || venue.type || 'Venue'}
-        </div>
+        </Badge>
 
         {/* Rating Badge */}
-        <div className="absolute right-3 top-3 rounded-lg bg-white/90 px-3 py-1 shadow z-[5]">
-          <div className="flex items-center gap-1">
-            <FaStar className="text-yellow-400" size={14} />
-            <span className="text-sm font-semibold text-[var(--text-dark)]">{rating.toFixed(1)}</span>
-          </div>
+        <div className="absolute right-3.5 top-3.5 rounded-full bg-white/95 dark:bg-stone-900/95 backdrop-blur-sm border border-stone-200/50 dark:border-white/10 px-3 py-1 shadow-sm select-none z-10 flex items-center gap-1">
+          <Star className="text-amber-500 fill-amber-500" size={12} />
+          <span className="text-xs font-bold text-[var(--text-dark)]">{rating.toFixed(1)}</span>
         </div>
       </div>
 
       {/* Content */}
-      <div className="p-4 flex-1 flex flex-col justify-between">
+      <div className="p-5 flex-1 flex flex-col justify-between">
         <div className="flex-grow flex flex-col justify-start">
-          <h3 className="mb-2 truncate text-lg font-bold text-[var(--text-dark)] transition-colors group-hover:text-[#cf5577]" title={venue.name}>
+          <h3 className="mb-2 font-serif text-lg font-bold text-[var(--text-dark)] transition-colors duration-200 group-hover:text-primary leading-snug truncate" title={venue.name}>
             {venue.name}
           </h3>
 
           {/* Location & Space Preference */}
-          <div className="mb-3 flex items-center justify-between gap-2 text-sm text-[var(--text-muted)]">
-            <div className="flex items-center gap-2">
-              <FaMapMarkerAlt className="text-[#e86f8f]" size={14} />
-              <span className="capitalize font-semibold text-[var(--text-dark)]">{venue.city}</span>
+          <div className="mb-3 flex items-center justify-between gap-3 text-xs text-[var(--text-muted)] font-semibold select-none">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <MapPin className="text-primary shrink-0" size={13} />
+              <span className="capitalize text-[var(--text-dark)] truncate">{venue.city}</span>
             </div>
-            <span className="inline-flex items-center rounded-md bg-[#ffd8c7]/40 dark:bg-white/5 px-2 py-0.5 text-[10px] font-bold text-[#9f3f61] dark:text-[#f6a7b8] select-none">
+            <Badge variant="primary" className="bg-primary/5 text-primary border-primary/10 text-[10px] tracking-normal shrink-0">
               {venue.indoor && venue.outdoor ? 'Indoor & Outdoor' : venue.indoor ? 'Indoor' : venue.outdoor ? 'Outdoor' : 'Venue'}
-            </span>
+            </Badge>
           </div>
 
           {/* Capacity */}
-          <div className="mb-3 flex items-center gap-2 text-sm text-[var(--text-muted)]">
-            <FaUsers className="text-[#e86f8f]" size={14} />
+          <div className="mb-3 flex items-center gap-1.5 text-xs text-[var(--text-muted)] font-medium select-none">
+            <Users className="text-primary shrink-0" size={13} />
             <span>
-              <span className="font-semibold text-[var(--text-dark)]">{minCapacity} - {maxCapacity}</span> guests
+              Capacity: <span className="font-semibold text-[var(--text-dark)]">{minCapacity} - {maxCapacity}</span> guests
             </span>
           </div>
 
           {/* Pricing */}
-          <div className="mb-4 flex items-baseline gap-1">
-            <span className="text-xs font-extrabold text-[#cf5577]">₹</span>
-            <span className="text-xl font-extrabold text-[#cf5577] tracking-tight">
+          <div className="mb-4 flex items-baseline gap-1 select-none">
+            <span className="text-xs font-bold text-primary">₹</span>
+            <span className="text-xl font-extrabold text-primary tracking-tight">
               {price.toLocaleString('en-IN')}
             </span>
-            <span className="text-xs font-semibold text-[var(--text-muted)] lowercase ml-0.5 select-none">
+            <span className="text-xs text-[var(--text-muted)] font-medium ml-1 lowercase">
               {venue.pricing?.perPlate ? 'per plate' : 'flat rate'}
             </span>
           </div>
 
           {/* Amenities */}
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className="flex flex-wrap gap-1.5 mb-4 select-none">
             {amenities.slice(0, 3).map((amenity) => (
-              <span
-                key={amenity}
-                className="rounded-lg bg-[#ffd8c7]/30 dark:bg-[#ffd8c7]/10 px-2 py-1 text-xs capitalize text-[#9f3f61] dark:text-[#f6a7b8] font-semibold"
+              <Badge 
+                key={amenity} 
+                variant="secondary" 
+                className="capitalize text-[10px] tracking-normal py-0.5"
               >
                 {amenity.replace(/_/g, ' ')}
-              </span>
+              </Badge>
             ))}
             {amenities.length > 3 && (
-              <span className="text-xs text-[var(--text-muted)] font-medium">+{amenities.length - 3} more</span>
+              <span className="text-[10px] text-[var(--text-muted)] font-semibold flex items-center">
+                +{amenities.length - 3} more
+              </span>
             )}
           </div>
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2 mt-4 shrink-0">
-          <button
+        <div className="flex gap-2 mt-4 shrink-0 select-none">
+          <Button
             onClick={handleViewDetails}
-            className="flex-1 rounded-lg bg-[#352c32] py-2 px-2.5 text-xs md:text-sm font-semibold text-white clay-button whitespace-nowrap truncate text-center min-h-[38px]"
+            variant="primary"
+            className="flex-1 text-xs md:text-sm py-2 px-3 min-h-[38px] font-bold"
             title="View Details"
           >
             View Details
-          </button>
+          </Button>
+          
+          {/* Favorite heart action */}
           <button
             onClick={handleAddToFavorites}
             disabled={isFavoriting}
-            className={`rounded-lg px-2.5 py-2 transition clay-button shrink-0 flex items-center justify-center min-w-[38px] min-h-[38px] ${
+            className={`rounded-xl px-3 py-2 transition-all duration-200 shrink-0 flex items-center justify-center border min-w-[38px] min-h-[38px] outline-none focus-visible:ring-2 focus-visible:ring-primary ${
               isFavorited
-                ? 'bg-red-100 text-red-600'
-                : 'bg-white/75 text-[#cf5577]'
+                ? 'bg-red-50 dark:bg-red-950/20 text-red-600 border-red-200 dark:border-red-900/40 shadow-sm'
+                : 'bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-300 border-stone-200 dark:border-stone-850 hover:bg-stone-50 dark:hover:bg-stone-800'
             }`}
-            title="Add to favorites"
+            title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+            aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
           >
-            <FaHeart size={16} fill={isFavorited ? 'currentColor' : 'none'} />
+            <Heart size={15} className={`transition-colors ${isFavorited ? 'fill-red-600 text-red-600' : 'text-stone-600 dark:text-stone-300'}`} />
           </button>
+
+          {/* Compare scale action */}
           <button
             onClick={handleToggleCompare}
             disabled={!canAddToCompare && !isInCompare}
-            className={`rounded-lg px-2.5 py-2 transition clay-button shrink-0 flex items-center justify-center min-w-[38px] min-h-[38px] ${
+            className={`rounded-xl px-3 py-2 transition-all duration-200 shrink-0 flex items-center justify-center border min-w-[38px] min-h-[38px] outline-none focus-visible:ring-2 focus-visible:ring-primary ${
               isInCompare
-                ? 'bg-[#d9cdfb] text-[#5c4a91]'
+                ? 'bg-primary/10 text-primary border-primary/20 shadow-sm'
                 : canAddToCompare
-                ? 'bg-white/75 text-[#5c4a91]'
-                : 'cursor-not-allowed bg-white/40 text-gray-300'
+                ? 'bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-300 border-stone-200 dark:border-stone-850 hover:bg-stone-50 dark:hover:bg-stone-800'
+                : 'cursor-not-allowed bg-stone-100 dark:bg-stone-800/40 text-stone-300 dark:text-stone-700 border-stone-200/50 dark:border-stone-800/40'
             }`}
-            title={canAddToCompare ? 'Add to compare' : isInCompare ? 'Remove from compare' : 'Max 4 venues'}
+            title={isInCompare ? 'Remove from compare' : canAddToCompare ? 'Add to compare' : `Max ${maxCompare} venues`}
+            aria-label={isInCompare ? 'Remove from compare' : canAddToCompare ? 'Add to compare' : `Max ${maxCompare} venues`}
           >
-            <FaBalanceScale size={16} />
+            <Scale size={15} />
           </button>
         </div>
       </div>

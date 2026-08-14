@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Send, MessageSquare, Clock, ArrowLeft, ChevronLeft } from 'lucide-react';
+
 import { chatAPI } from '../utils/api';
 import { getSocket } from '../utils/socket';
 import {
@@ -8,11 +10,14 @@ import {
   setActiveUserId,
   setActiveMessages,
   addMessage,
-  setTypingStatus,
   clearChat,
   setLoading
 } from '../redux/chatSlice';
-import { Send, MessageSquare, Clock, ArrowLeft, User, ShieldAlert } from 'lucide-react';
+
+// UI components
+import Button from '../components/ui/Button';
+import { Card, CardContent } from '../components/ui/Card';
+import Badge from '../components/ui/Badge';
 
 export default function ChatPortal() {
   const dispatch = useDispatch();
@@ -111,10 +116,6 @@ export default function ChatPortal() {
 
   const fetchTargetUserProfile = async (otherId) => {
     try {
-      // Find details from api /auth/me or direct route, or just fall back to template loading
-      // For this project, we can fetch active coordinator info from the conversations lists,
-      // or if initiating a new thread, we fetch basic info.
-      // We will search if there is a way to get user details:
       const res = await chatAPI.getConversations();
       const updatedList = res.data.conversations;
       const found = updatedList.find(c => c.otherUser.id === otherId);
@@ -179,7 +180,6 @@ export default function ChatPortal() {
     }
 
     if (socket && socket.connected) {
-      // Emit via WebSockets for real-time delivery
       socket.emit('chat:send', {
         sender: myId,
         receiver: activeUserId,
@@ -213,43 +213,51 @@ export default function ChatPortal() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 text-[var(--text-body)] h-[calc(100vh-140px)] flex flex-col">
-      <div className="mb-6 shrink-0 flex items-center gap-3">
-        <button
+    <div className="mx-auto max-w-7xl px-6 py-8 h-[calc(100vh-140px)] flex flex-col">
+      
+      {/* Breadcrumb Header */}
+      <div className="mb-6 shrink-0 flex items-center gap-3 select-none">
+        <Button
           onClick={() => navigate('/my-inquiries')}
-          className="inline-flex items-center gap-2 text-sm font-semibold text-[#cf5577] hover:text-[#e86f8f]"
+          variant="ghost"
+          size="sm"
+          className="px-3 py-1.5 text-primary hover:bg-primary/5 gap-1.5 font-bold"
+          leftIcon={<ArrowLeft size={15} />}
         >
-          <ArrowLeft size={16} />
           Inquiries
-        </button>
-        <span className="text-[var(--text-muted)]">/</span>
-        <span className="text-sm font-bold text-[var(--text-dark)] uppercase tracking-wider">Messaging Portal</span>
+        </Button>
+        <span className="text-stone-300 dark:text-stone-750">/</span>
+        <span className="text-xs font-bold text-[var(--text-dark)] uppercase tracking-wider">
+          Messaging Portal
+        </span>
       </div>
 
-      <div className="flex-1 flex gap-6 clay-card overflow-hidden h-full min-h-[450px]">
-        {/* Left Column: Conversations List */}
+      {/* Main Dual Pane layout Card */}
+      <Card className="flex-1 flex gap-0 border border-[var(--border-medium)] overflow-hidden h-full min-h-[450px] shadow-sm bg-white dark:bg-stone-900/10">
+        
+        {/* Left Column: Conversations List sidebar */}
         <div
-          className={`w-full lg:w-1/3 border-r border-[var(--border-light)] flex flex-col h-full ${
+          className={`w-full lg:w-1/3 border-r border-[var(--border-light)] flex flex-col h-full bg-stone-50/40 dark:bg-stone-900/30 ${
             activeUserId ? 'hidden lg:flex' : 'flex'
           }`}
         >
-          <div className="p-4 border-b border-[var(--border-light)] bg-[var(--clay-inset-bg)] shrink-0">
-            <h2 className="font-bold text-lg text-[var(--text-dark)] flex items-center gap-2">
-              <MessageSquare size={18} className="text-[#cf5577]" />
-              Conversations
+          <div className="p-5 border-b border-[var(--border-light)] bg-white dark:bg-stone-900/40 shrink-0 select-none">
+            <h2 className="font-serif text-lg font-bold text-[var(--text-dark)] flex items-center gap-2">
+              <MessageSquare size={16} className="text-primary" />
+              <span>Conversations</span>
             </h2>
           </div>
 
           <div className="flex-1 overflow-y-auto divide-y divide-[var(--border-light)]">
             {isLoading && (
-              <div className="flex items-center justify-center py-10">
-                <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-[#cf5577]" />
+              <div className="flex items-center justify-center py-12 select-none">
+                <div className="h-8 w-8 rounded-full border-2 border-primary/15 border-t-primary animate-spin" />
               </div>
             )}
 
             {!isLoading && conversations.length === 0 && (
-              <div className="p-8 text-center text-[var(--text-muted)] text-sm">
-                No active conversations yet.
+              <div className="p-8 text-center text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider select-none">
+                No active messages yet.
               </div>
             )}
 
@@ -260,36 +268,43 @@ export default function ChatPortal() {
                   <button
                     key={conv.otherUser.id}
                     onClick={() => dispatch(setActiveUserId(conv.otherUser.id))}
-                    className={`w-full text-left p-4 flex gap-3 transition ${
-                      isSelected ? 'bg-[#ffd8c7]/20 border-l-4 border-[#e86f8f]' : 'hover:bg-white/5'
+                    className={`w-full text-left p-4 flex gap-3 transition-all duration-150 border-l-4 outline-none ${
+                      isSelected 
+                        ? 'bg-primary/5 dark:bg-primary/10 border-l-primary' 
+                        : 'hover:bg-stone-50 dark:hover:bg-stone-850/20 border-l-transparent'
                     }`}
                   >
-                    <div className="h-10 w-10 rounded-full bg-[#ffd8c7] flex items-center justify-center text-[#9f3f61] font-bold shrink-0 shadow-inner">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold shrink-0 shadow-inner select-none">
                       {conv.otherUser.name.charAt(0).toUpperCase()}
                     </div>
+                    
                     <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-baseline mb-0.5">
-                        <h4 className="font-bold text-sm text-[var(--text-dark)] truncate capitalize">
+                      
+                      <div className="flex justify-between items-baseline mb-1">
+                        <h4 className="font-serif font-bold text-sm text-[var(--text-dark)] truncate capitalize">
                           {conv.otherUser.name}
                         </h4>
-                        <span className="text-[10px] text-[var(--text-muted)] flex items-center gap-1">
-                          <Clock size={10} />
-                          {formatTime(conv.lastMessage?.createdAt)}
+                        <span className="text-[10px] text-[var(--text-muted)] font-semibold flex items-center gap-1 select-none">
+                          <Clock size={10} className="shrink-0" />
+                          <span>{formatTime(conv.lastMessage?.createdAt)}</span>
                         </span>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <p className="text-xs text-[var(--text-muted)] truncate flex-1 pr-2">
+                      
+                      <div className="flex justify-between items-center mb-1.5">
+                        <p className="text-xs text-[var(--text-muted)] font-semibold truncate flex-1 pr-2">
                           {conv.lastMessage?.text || 'No messages yet'}
                         </p>
                         {conv.unreadCount > 0 && (
-                          <span className="h-5 min-w-5 px-1.5 rounded-full bg-[#e86f8f] text-white text-[10px] font-bold flex items-center justify-center shadow-sm">
+                          <span className="h-4.5 min-w-4.5 px-1.5 rounded-full bg-primary text-white text-[9px] font-bold flex items-center justify-center shadow-sm shrink-0 select-none">
                             {conv.unreadCount}
                           </span>
                         )}
                       </div>
-                      <span className="mt-1 inline-block text-[9px] font-bold tracking-wider uppercase text-[#cf5577] bg-[#ffd8c7]/30 px-2 py-0.5 rounded-full">
+                      
+                      <Badge variant="secondary" className="text-[9px] font-bold py-0.5 px-2 capitalize select-none">
                         {getRoleLabel(conv.otherUser.role)}
-                      </span>
+                      </Badge>
+                      
                     </div>
                   </button>
                 );
@@ -297,39 +312,40 @@ export default function ChatPortal() {
           </div>
         </div>
 
-        {/* Right Column: Chat Window Message Pane */}
+        {/* Right Column: Chat Window Pane */}
         <div
-          className={`w-full lg:w-2/3 flex flex-col h-full bg-white/5 dark:bg-black/5 ${
+          className={`w-full lg:w-2/3 flex flex-col h-full bg-stone-50/20 dark:bg-stone-900/10 ${
             !activeUserId ? 'hidden lg:flex justify-center items-center p-8' : 'flex'
           }`}
         >
           {activeUserId && activeUserDetail ? (
             <>
-              {/* Header */}
-              <div className="p-4 border-b border-[var(--border-light)] bg-[var(--clay-inset-bg)] shrink-0 flex items-center justify-between">
+              {/* Message Header */}
+              <div className="p-4 border-b border-[var(--border-light)] bg-white dark:bg-stone-900/40 shrink-0 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => dispatch(setActiveUserId(null))}
-                    className="lg:hidden text-[var(--text-muted)] hover:text-[#cf5577]"
+                    className="lg:hidden text-[var(--text-muted)] hover:text-primary p-1 bg-stone-50 dark:bg-stone-850 rounded-xl"
+                    aria-label="Back to conversations list"
                   >
-                    <ChevronLeftIcon />
+                    <ChevronLeft size={20} />
                   </button>
-                  <div className="h-10 w-10 rounded-full bg-[#ffd8c7] flex items-center justify-center text-[#9f3f61] font-bold shadow-inner">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold shadow-inner select-none">
                     {activeUserDetail.name.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <h3 className="font-bold text-sm text-[var(--text-dark)] capitalize leading-tight">
+                    <h3 className="font-serif font-bold text-sm text-[var(--text-dark)] capitalize leading-tight">
                       {activeUserDetail.name}
                     </h3>
-                    <span className="text-[10px] text-[#cf5577] font-semibold uppercase tracking-wider">
+                    <span className="text-[10px] text-primary font-bold uppercase tracking-wider select-none">
                       {getRoleLabel(activeUserDetail.role)}
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* Message History list */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {/* Chat Thread history */}
+              <div className="flex-1 overflow-y-auto p-5 space-y-4">
                 {activeMessages.map((msg) => {
                   const isSentByMe = msg.sender === (user.id || user._id);
                   return (
@@ -338,15 +354,15 @@ export default function ChatPortal() {
                       className={`flex ${isSentByMe ? 'justify-end' : 'justify-start'}`}
                     >
                       <div
-                        className={`max-w-[75%] rounded-2xl px-4 py-2.5 shadow-sm border ${
+                        className={`max-w-[70%] rounded-2xl px-4 py-2.5 shadow-sm border text-sm leading-relaxed ${
                           isSentByMe
-                            ? 'bg-gradient-to-r from-[#e86f8f] to-[#cf5577] text-white border-[#cf5577]/20 rounded-tr-none'
-                            : 'bg-[var(--clay-card-bg)] text-[var(--text-body)] border-[var(--clay-card-border)] rounded-tl-none'
+                            ? 'bg-primary text-white border-primary/20 rounded-tr-none'
+                            : 'bg-white dark:bg-stone-900 text-[var(--text-body)] border-stone-200 dark:border-stone-850 rounded-tl-none'
                         }`}
                       >
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{msg.text}</p>
+                        <p className="whitespace-pre-wrap break-words">{msg.text}</p>
                         <span
-                          className={`block text-[9px] text-right mt-1.5 font-medium ${
+                          className={`block text-[9px] text-right mt-1.5 font-bold ${
                             isSentByMe ? 'text-white/70' : 'text-[var(--text-muted)]'
                           }`}
                         >
@@ -357,16 +373,16 @@ export default function ChatPortal() {
                   );
                 })}
 
-                {/* Real-time Typing Bubble indicator */}
+                {/* Real-time Typing Indicator bubble */}
                 {isTyping && (
-                  <div className="flex justify-start">
-                    <div className="bg-[var(--clay-card-bg)] border border-[var(--clay-card-border)] rounded-2xl rounded-tl-none px-4 py-3 flex items-center gap-1.5 shadow-sm">
-                      <span className="text-xs text-[var(--text-muted)] italic mr-1">
-                        {activeUserDetail.name} is typing
+                  <div className="flex justify-start select-none">
+                    <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-850 rounded-2xl rounded-tl-none px-4 py-3 flex items-center gap-1.5 shadow-sm">
+                      <span className="text-xs text-[var(--text-muted)] font-semibold italic mr-1">
+                        {activeUserDetail.name} typing
                       </span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#cf5577] animate-bounce delay-0"></span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#cf5577] animate-bounce delay-150"></span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#cf5577] animate-bounce delay-300"></span>
+                      <span className="w-1 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                      <span className="w-1 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                      <span className="w-1 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '300ms' }}></span>
                     </div>
                   </div>
                 )}
@@ -374,47 +390,45 @@ export default function ChatPortal() {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Input Footer Form bar */}
+              {/* Message Composer Footer bar */}
               <form
                 onSubmit={handleSendMessage}
-                className="p-4 border-t border-[var(--border-light)] bg-[var(--clay-inset-bg)] shrink-0 flex gap-3 items-center"
+                className="p-4 border-t border-[var(--border-light)] bg-white dark:bg-stone-900/40 shrink-0 flex gap-3 items-center select-none"
               >
-                <div className="flex-1 clay-inset px-4 py-2.5">
+                <div className="flex-1 bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-850 px-4 py-3 rounded-xl hover:border-stone-300 dark:hover:border-stone-850 transition duration-150">
                   <input
                     type="text"
                     value={messageInput}
                     onChange={handleInputChange}
                     placeholder="Type your message here..."
+                    aria-label="Message text inputs"
                     className="w-full bg-transparent text-sm text-[var(--text-body)] outline-none placeholder:text-[var(--text-muted)]"
                   />
                 </div>
-                <button
+                <Button
                   type="submit"
                   disabled={!messageInput.trim()}
-                  className="h-10 w-10 rounded-full bg-[#e86f8f] hover:bg-[#cf5577] text-white flex items-center justify-center transition shadow-md disabled:opacity-50 disabled:hover:bg-[#e86f8f] shrink-0"
+                  variant="primary"
+                  className="h-11 w-11 rounded-full shrink-0 flex items-center justify-center shadow-md p-0"
+                  aria-label="Send message"
                 >
-                  <Send size={16} />
-                </button>
+                  <Send size={15} />
+                </Button>
               </form>
             </>
           ) : (
-            <div className="text-center p-8">
-              <MessageSquare size={48} className="mx-auto mb-4 text-[#cf5577] opacity-60" />
-              <h3 className="text-xl font-bold text-[var(--text-dark)]">Your Messages</h3>
-              <p className="text-sm text-[var(--text-muted)] mt-2">
-                Select a conversation from the sidebar, or contact a venue coordinator directly from your inquiries dashboard to start chatting.
+            <div className="text-center p-8 select-none flex flex-col items-center justify-center">
+              <div className="h-16 w-16 bg-primary/5 rounded-2xl flex items-center justify-center text-primary mb-5 shadow-sm">
+                <MessageSquare size={26} />
+              </div>
+              <h3 className="font-serif text-xl font-bold text-[var(--text-dark)] mb-2">Your Messages</h3>
+              <p className="max-w-md text-sm text-[var(--text-muted)] leading-relaxed font-semibold">
+                Select an active conversation thread from the list, or contact coordinates directly from your inquiries list to coordinate booking dates.
               </p>
             </div>
           )}
         </div>
-      </div>
+      </Card>
     </div>
-  );
-}
-
-// Inline svg icons helper for ChevronLeft
-function ChevronLeftIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-left"><path d="m15 18-6-6 6-6"/></svg>
   );
 }

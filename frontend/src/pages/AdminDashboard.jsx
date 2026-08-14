@@ -8,10 +8,16 @@ import {
   Shield,
   Trash2,
   Search,
-  MoreVertical,
   TrendingUp,
+  AlertTriangle
 } from "lucide-react";
 
+// UI components
+import Button from "../components/ui/Button";
+import Input from "../components/ui/Input";
+import { Card, CardContent } from "../components/ui/Card";
+import Badge from "../components/ui/Badge";
+import EmptyState from "../components/ui/EmptyState";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -37,245 +43,272 @@ export default function AdminDashboard() {
 
   const renderOverview = () => (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      
+      {/* Overview Stat Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 select-none">
         {stats.map((stat, index) => (
           <motion.div
             key={index}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="bg-white p-6 rounded-[24px] border border-rose-100 shadow-sm"
+            transition={{ delay: index * 0.05 }}
           >
-            <div className="flex items-center justify-between">
-              <div className="w-12 h-12 rounded-2xl bg-rose-50 flex items-center justify-center">
-                <stat.icon className="text-rose-400" size={24} />
-              </div>
-              <span className="flex items-center gap-1 text-sm font-medium text-emerald-500 bg-emerald-50 px-2 py-1 rounded-lg">
-                <TrendingUp size={14} />
-                {stat.increase}
-              </span>
-            </div>
-            <h3 className="text-3xl font-bold text-slate-900 mt-4">{stat.value}</h3>
-            <p className="text-slate-500 mt-1 font-medium">{stat.label}</p>
+            <Card className="border border-[var(--border-medium)] shadow-sm">
+              <CardContent className="p-6 flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                    <stat.icon size={20} />
+                  </div>
+                  <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 px-2 py-0.5 rounded-full">
+                    <TrendingUp size={11} />
+                    <span>{stat.increase}</span>
+                  </span>
+                </div>
+                <div>
+                  <h3 className="text-3xl font-extrabold text-[var(--text-dark)] tracking-tight">{stat.value}</h3>
+                  <p className="text-xs text-[var(--text-muted)] mt-1 font-bold uppercase tracking-wider">{stat.label}</p>
+                </div>
+              </CardContent>
+            </Card>
           </motion.div>
         ))}
       </div>
 
-      <div className="bg-white p-8 rounded-[24px] border border-rose-100 shadow-sm">
-        <h3 className="text-xl font-bold text-slate-900 mb-6">Recent Platform Activity</h3>
-        <div className="space-y-4">
-          {[1, 2, 3].map((_, i) => (
-            <div key={i} className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
-              <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
-                <Users className="text-slate-500" size={18} />
+      {/* Recent Activity Card */}
+      <Card className="border border-[var(--border-medium)] shadow-sm">
+        <CardContent className="p-6 md:p-8 flex flex-col gap-5">
+          <h3 className="font-serif text-lg font-bold text-[var(--text-dark)] border-b border-[var(--border-light)] pb-3 select-none">
+            Recent Platform Activity
+          </h3>
+          <div className="space-y-3">
+            {[1, 2, 3].map((_, i) => (
+              <div 
+                key={i} 
+                className="flex items-center gap-4 p-4 rounded-xl border border-[var(--border-light)] hover:bg-stone-50 dark:hover:bg-stone-850/10 transition-colors"
+              >
+                <div className="w-9 h-9 rounded-full bg-stone-100 dark:bg-stone-900/50 flex items-center justify-center text-[var(--text-muted)] shrink-0 select-none">
+                  <Users size={16} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-sm text-[var(--text-dark)] truncate">New organizer registration</p>
+                  <p className="text-xs text-[var(--text-muted)] font-semibold truncate mt-0.5">Ocean Events just joined the platform.</p>
+                </div>
+                <span className="text-[10px] text-[var(--text-muted)] font-semibold whitespace-nowrap shrink-0 select-none">2h ago</span>
               </div>
-              <div className="flex-1">
-                <p className="text-slate-800 font-medium">New organizer registration</p>
-                <p className="text-sm text-slate-500">Ocean Events just joined the platform.</p>
-              </div>
-              <span className="text-sm text-slate-400">2 hours ago</span>
-            </div>
-          ))}
-        </div>
-      </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
     </div>
   );
 
   const renderUsers = () => (
-    <div className="bg-white rounded-[24px] border border-rose-100 shadow-sm overflow-hidden">
-      <div className="p-6 border-b border-rose-50 flex flex-wrap gap-4 items-center justify-between">
-        <h3 className="text-xl font-bold text-slate-900">User Management</h3>
-        <div className="flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200">
-          <Search className="text-slate-400" size={18} />
-          <input 
-            type="text" 
+    <Card className="border border-[var(--border-medium)] shadow-sm overflow-hidden">
+      
+      {/* Search Header */}
+      <div className="p-6 border-b border-[var(--border-light)] flex flex-wrap gap-4 items-center justify-between bg-stone-50 dark:bg-stone-900/30">
+        <h3 className="font-serif text-lg font-bold text-[var(--text-dark)] select-none">User Management</h3>
+        <div className="w-full md:w-72 select-none">
+          <Input 
             placeholder="Search users..." 
-            className="bg-transparent outline-none text-slate-700 placeholder:text-slate-400 w-full md:w-64"
+            leftIcon={<Search size={14} className="text-[var(--text-muted)]" />}
+            aria-label="Search users list"
           />
         </div>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+
+      {/* Users Table */}
+      <div className="overflow-x-auto scrollbar-thin">
+        <table className="w-full text-left border-collapse text-sm">
           <thead>
-            <tr className="bg-slate-50/50 text-slate-500 text-sm border-b border-rose-50">
-              <th className="p-6 font-medium">Name</th>
-              <th className="p-6 font-medium">Email</th>
-              <th className="p-6 font-medium">Role</th>
-              <th className="p-6 font-medium">Status</th>
-              <th className="p-6 font-medium text-right">Actions</th>
+            <tr className="border-b border-[var(--border-light)] bg-stone-50 dark:bg-stone-900/40 select-none">
+              <th className="px-6 py-4 font-bold text-[var(--text-muted)] uppercase tracking-wider text-xs">Name</th>
+              <th className="px-6 py-4 font-bold text-[var(--text-muted)] uppercase tracking-wider text-xs">Email</th>
+              <th className="px-6 py-4 font-bold text-[var(--text-muted)] uppercase tracking-wider text-xs">Role</th>
+              <th className="px-6 py-4 font-bold text-[var(--text-muted)] uppercase tracking-wider text-xs">Status</th>
+              <th className="px-6 py-4 font-bold text-[var(--text-muted)] uppercase tracking-wider text-xs text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
             {mockUsers.map((user) => (
-              <tr key={user.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                <td className="p-6 font-semibold text-slate-900">{user.name}</td>
-                <td className="p-6 text-slate-500">{user.email}</td>
-                <td className="p-6">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${
-                    user.role === 'organizer' ? 'bg-purple-50 text-purple-600' : 'bg-blue-50 text-blue-600'
-                  }`}>
+              <tr key={user.id} className="border-b border-[var(--border-light)] hover:bg-stone-50/20 dark:hover:bg-stone-850/10 transition-colors">
+                <td className="px-6 py-4 font-bold text-[var(--text-dark)] select-text">{user.name}</td>
+                <td className="px-6 py-4 text-[var(--text-muted)] font-semibold select-text">{user.email}</td>
+                <td className="px-6 py-4 select-none">
+                  <Badge variant={user.role === 'organizer' ? 'primary' : 'secondary'} className="capitalize text-[10px] font-bold py-0.5 px-2.5">
                     {user.role}
-                  </span>
+                  </Badge>
                 </td>
-                <td className="p-6">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    user.status === 'Active' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'
-                  }`}>
+                <td className="px-6 py-4 select-none">
+                  <Badge variant={user.status === 'Active' ? 'success' : 'danger'} className="text-[10px] font-bold py-0.5 px-2.5">
                     {user.status}
-                  </span>
+                  </Badge>
                 </td>
-                <td className="p-6 text-right">
-                  <button className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors">
-                    <Trash2 size={18} />
-                  </button>
+                <td className="px-6 py-4 text-right select-none">
+                  <Button 
+                    variant="ghost" 
+                    size="xs"
+                    className="text-red-600 hover:bg-red-50 p-1.5"
+                    aria-label={`Delete ${user.name}`}
+                  >
+                    <Trash2 size={15} />
+                  </Button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-    </div>
+
+    </Card>
   );
 
   const renderVenues = () => (
-    <div className="bg-white rounded-[24px] border border-rose-100 shadow-sm overflow-hidden">
-      <div className="p-6 border-b border-rose-50">
-        <h3 className="text-xl font-bold text-slate-900">Venue Moderation</h3>
-        <p className="text-slate-500 text-sm mt-1">Review and manage platform listings.</p>
+    <Card className="border border-[var(--border-medium)] shadow-sm overflow-hidden">
+      
+      {/* Moderation Header */}
+      <div className="p-6 border-b border-[var(--border-light)] bg-stone-50 dark:bg-stone-900/30 select-none">
+        <h3 className="font-serif text-lg font-bold text-[var(--text-dark)]">Venue Moderation</h3>
+        <p className="text-xs text-[var(--text-muted)] font-semibold mt-1">Review and manage platform listings.</p>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+
+      {/* Moderation table */}
+      <div className="overflow-x-auto scrollbar-thin">
+        <table className="w-full text-left border-collapse text-sm">
           <thead>
-            <tr className="bg-slate-50/50 text-slate-500 text-sm border-b border-rose-50">
-              <th className="p-6 font-medium">Venue Name</th>
-              <th className="p-6 font-medium">Organizer</th>
-              <th className="p-6 font-medium">Reports</th>
-              <th className="p-6 font-medium">Status</th>
-              <th className="p-6 font-medium text-right">Actions</th>
+            <tr className="border-b border-[var(--border-light)] bg-stone-50 dark:bg-stone-900/40 select-none">
+              <th className="px-6 py-4 font-bold text-[var(--text-muted)] uppercase tracking-wider text-xs">Venue Name</th>
+              <th className="px-6 py-4 font-bold text-[var(--text-muted)] uppercase tracking-wider text-xs">Organizer</th>
+              <th className="px-6 py-4 font-bold text-[var(--text-muted)] uppercase tracking-wider text-xs">Reports</th>
+              <th className="px-6 py-4 font-bold text-[var(--text-muted)] uppercase tracking-wider text-xs">Status</th>
+              <th className="px-6 py-4 font-bold text-[var(--text-muted)] uppercase tracking-wider text-xs text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
             {mockVenues.map((venue) => (
-              <tr key={venue.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                <td className="p-6 font-semibold text-slate-900">{venue.name}</td>
-                <td className="p-6 text-slate-500">{venue.organizer}</td>
-                <td className="p-6">
-                  <span className={`font-semibold ${venue.reports > 0 ? 'text-red-500' : 'text-slate-500'}`}>
-                    {venue.reports}
+              <tr key={venue.id} className="border-b border-[var(--border-light)] hover:bg-stone-50/20 dark:hover:bg-stone-850/10 transition-colors">
+                <td className="px-6 py-4 font-bold text-[var(--text-dark)] select-text">{venue.name}</td>
+                <td className="px-6 py-4 text-[var(--text-muted)] font-semibold select-text">{venue.organizer}</td>
+                <td className="px-6 py-4">
+                  <span className={`font-bold select-none text-xs ${venue.reports > 0 ? 'text-red-650 flex items-center gap-1.5' : 'text-[var(--text-muted)]'}`}>
+                    {venue.reports > 0 && <AlertTriangle size={12} />}
+                    <span>{venue.reports} reports</span>
                   </span>
                 </td>
-                <td className="p-6">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    venue.status === 'Active' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
-                  }`}>
+                <td className="px-6 py-4 select-none">
+                  <Badge variant={venue.status === 'Active' ? 'success' : 'warning'} className="text-[10px] font-bold py-0.5 px-2.5">
                     {venue.status}
-                  </span>
+                  </Badge>
                 </td>
-                <td className="p-6 text-right flex justify-end gap-2">
-                  <button className="px-3 py-1.5 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">
+                <td className="px-6 py-4 text-right flex justify-end gap-2 select-none">
+                  <Button 
+                    variant="outline" 
+                    size="xs"
+                    className="font-bold border-stone-200"
+                  >
                     Review
-                  </button>
-                  <button className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete Listing">
-                    <Trash2 size={18} />
-                  </button>
+                  </Button>
+                  
+                  <Button 
+                    variant="ghost" 
+                    size="xs"
+                    className="text-red-600 hover:bg-red-50 p-1.5"
+                    aria-label={`Delete venue listing ${venue.name}`}
+                  >
+                    <Trash2 size={15} />
+                  </Button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-    </div>
+
+    </Card>
   );
 
   return (
-    <div className="min-h-screen bg-[#fffaf9] text-slate-800 font-sans">
-      
-      <div className="max-w-7xl mx-auto px-6 py-10 flex flex-col md:flex-row gap-8">
+    <div className="min-h-screen text-[var(--text-body)] pt-8 pb-16 bg-[var(--bg-slate)] transition-colors duration-300">
+      <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row gap-8 items-start">
         
-        {/* SIDEBAR NAVIGATION */}
-        <aside className="w-full md:w-64 flex-shrink-0">
-          <div className="bg-white p-4 rounded-[24px] border border-rose-100 shadow-sm sticky top-28">
-            
-            <div className="mb-6 px-4 pt-2">
-              <h2 className="text-sm font-bold tracking-wider text-slate-400 uppercase">Admin Panel</h2>
-            </div>
-            
-            <nav className="flex flex-col gap-2">
-              <button
-                onClick={() => setActiveTab("overview")}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${
-                  activeTab === "overview" 
-                    ? "bg-rose-50 text-rose-500" 
-                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-                }`}
-              >
-                <LayoutDashboard size={20} />
-                Overview
-              </button>
+        {/* Sidebar Navigation */}
+        <aside className="w-full md:w-64 shrink-0 select-none">
+          <Card className="border border-[var(--border-medium)] shadow-sm sticky top-28 bg-white dark:bg-stone-900/40">
+            <CardContent className="p-5 flex flex-col gap-2">
+              
+              <div className="px-3 pt-1 pb-3 border-b border-[var(--border-light)] mb-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Admin Panel</span>
+              </div>
+              
+              <nav className="flex flex-col gap-1.5">
+                <Button
+                  onClick={() => setActiveTab("overview")}
+                  variant={activeTab === "overview" ? "primary" : "ghost"}
+                  className="w-full justify-start gap-3 font-bold py-2.5 px-3.5"
+                  leftIcon={<LayoutDashboard size={16} />}
+                >
+                  Overview
+                </Button>
 
-              <button
-                onClick={() => setActiveTab("users")}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${
-                  activeTab === "users" 
-                    ? "bg-rose-50 text-rose-500" 
-                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-                }`}
-              >
-                <Users size={20} />
-                User Management
-              </button>
+                <Button
+                  onClick={() => setActiveTab("users")}
+                  variant={activeTab === "users" ? "primary" : "ghost"}
+                  className="w-full justify-start gap-3 font-bold py-2.5 px-3.5"
+                  leftIcon={<Users size={16} />}
+                >
+                  User Management
+                </Button>
 
-              <button
-                onClick={() => setActiveTab("venues")}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${
-                  activeTab === "venues" 
-                    ? "bg-rose-50 text-rose-500" 
-                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-                }`}
-              >
-                <Building2 size={20} />
-                Venue Moderation
-              </button>
+                <Button
+                  onClick={() => setActiveTab("venues")}
+                  variant={activeTab === "venues" ? "primary" : "ghost"}
+                  className="w-full justify-start gap-3 font-bold py-2.5 px-3.5"
+                  leftIcon={<Building2 size={16} />}
+                >
+                  Venue Moderation
+                </Button>
 
-              <button
-                onClick={() => setActiveTab("reviews")}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${
-                  activeTab === "reviews" 
-                    ? "bg-rose-50 text-rose-500" 
-                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-                }`}
-              >
-                <MessageSquare size={20} />
-                Reviews & Content
-              </button>
-            </nav>
-          </div>
+                <Button
+                  onClick={() => setActiveTab("reviews")}
+                  variant={activeTab === "reviews" ? "primary" : "ghost"}
+                  className="w-full justify-start gap-3 font-bold py-2.5 px-3.5"
+                  leftIcon={<MessageSquare size={16} />}
+                >
+                  Reviews & Content
+                </Button>
+              </nav>
+
+            </CardContent>
+          </Card>
         </aside>
 
-        {/* MAIN CONTENT AREA */}
-        <main className="flex-1 min-w-0">
+        {/* Tab pane content container */}
+        <main className="flex-1 min-w-0 w-full">
           <motion.div
             key={activeTab}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            className="w-full"
           >
             {activeTab === "overview" && renderOverview()}
             {activeTab === "users" && renderUsers()}
             {activeTab === "venues" && renderVenues()}
             {activeTab === "reviews" && (
-              <div className="bg-white p-12 text-center rounded-[24px] border border-rose-100 shadow-sm">
-                <div className="w-20 h-20 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <MessageSquare className="text-rose-300" size={32} />
-                </div>
-                <h3 className="text-2xl font-bold text-slate-900">Review Moderation</h3>
-                <p className="text-slate-500 mt-2 max-w-md mx-auto">
-                  Manage user reviews, handle reported content, and maintain platform quality.
-                </p>
-                <button className="mt-6 px-6 py-2 bg-slate-100 text-slate-600 font-medium rounded-xl">
-                  No reported reviews
-                </button>
-              </div>
+              <EmptyState
+                title="Review Moderation"
+                description="Manage user reviews, handle reported content alerts, and maintain venue discovery platform quality guidelines."
+                action={
+                  <Button 
+                    variant="outline" 
+                    className="font-bold border-stone-200"
+                    disabled
+                  >
+                    No reported reviews
+                  </Button>
+                }
+              />
             )}
           </motion.div>
         </main>

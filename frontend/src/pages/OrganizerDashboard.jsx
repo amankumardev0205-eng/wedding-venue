@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { FiEdit2, FiTrash2, FiPlus } from 'react-icons/fi';
+import { Edit2, Trash2, Plus } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 import { getVenueCardImageUrl, handleImageError } from '../utils/imageUtils';
-import { motion, AnimatePresence } from 'framer-motion';
 import VenueCardSkeleton from '../components/VenueCardSkeleton';
 import {
   fetchOrganizerVenues,
@@ -15,13 +15,19 @@ import {
 } from '../redux/organizerVenuesSlice';
 import VenueForm from '../components/VenueForm';
 
+// UI components
+import Button from '../components/ui/Button';
+import { Card, CardContent } from '../components/ui/Card';
+import Badge from '../components/ui/Badge';
+import EmptyState from '../components/ui/EmptyState';
+
 export default function OrganizerDashboard() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [showForm, setShowForm] = useState(false);
   const [editingVenue, setEditingVenue] = useState(null);
-  const { user, isAuthenticated } = useSelector((state) => state.auth);
-  const { venues, loading, error, successMessage } = useSelector((state) => state.organizerVenues);
+  const { user, isAuthenticated } = useSelector((state) => state.auth || {});
+  const { venues, loading, error, successMessage } = useSelector((state) => state.organizerVenues || { venues: [], loading: false, error: null, successMessage: null });
 
   useEffect(() => {
     if (!isAuthenticated || user?.role !== 'organizer') {
@@ -80,72 +86,92 @@ export default function OrganizerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen text-[var(--text-body)] pt-8 pb-16 bg-[var(--bg-slate)] transition-colors duration-300">
       <motion.div 
-        initial={{ opacity: 0, y: 15 }} 
+        initial={{ opacity: 0, y: 12 }} 
         animate={{ opacity: 1, y: 0 }} 
-        className="py-8"
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+        className="max-w-6xl mx-auto px-6"
       >
-        <div className="max-w-6xl mx-auto px-4">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900">Organizer Dashboard</h1>
-            <p className="text-gray-600 mt-2">Manage your wedding venues</p>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 select-none">
+          <div className="flex flex-col gap-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-primary">Coordinator Center</span>
+            <h1 className="font-serif text-3xl md:text-5xl font-extrabold text-[var(--text-dark)] leading-tight tracking-wide">
+              Organizer Dashboard
+            </h1>
+            <p className="text-sm text-[var(--text-muted)] font-medium leading-relaxed max-w-[500px]">
+              Manage and list your professional wedding venue portfolios.
+            </p>
           </div>
-          <button
+          
+          <Button
             onClick={() => {
               setEditingVenue(null);
               setShowForm(!showForm);
             }}
-            className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 active:scale-95 transition-all shadow-sm"
+            variant={showForm && !editingVenue ? 'outline' : 'primary'}
+            className="font-bold shrink-0 shadow-sm"
+            leftIcon={!(showForm && !editingVenue) && <Plus size={16} />}
           >
-            <FiPlus /> {showForm && !editingVenue ? 'Close' : 'Add Venue'}
-          </button>
+            {showForm && !editingVenue ? 'Close Panel' : 'Add Venue'}
+          </Button>
         </div>
 
-        {/* Messages */}
+        {/* Notifications */}
         <AnimatePresence>
           {successMessage && (
-            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mb-4 p-4 bg-green-100 text-green-700 rounded-lg">
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              exit={{ opacity: 0 }} 
+              className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl text-sm font-semibold select-text"
+            >
               {successMessage}
             </motion.div>
           )}
           {error && (
-            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              exit={{ opacity: 0 }} 
+              className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm font-semibold select-text"
+            >
               {error}
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Form Section */}
+        {/* Venue Form Overlay panel */}
         <AnimatePresence>
           {showForm && (
             <motion.div 
               initial={{ opacity: 0, height: 0 }} 
               animate={{ opacity: 1, height: 'auto' }} 
               exit={{ opacity: 0, height: 0 }} 
+              transition={{ duration: 0.25, ease: 'easeInOut' }}
               className="mb-8 overflow-hidden"
             >
-            <VenueForm
-              onSubmit={handleAddVenue}
-              isLoading={loading}
-              initialData={editingVenue}
-              isEditing={!!editingVenue}
-            />
-            <div className="mt-4 text-center">
-              <button
-                onClick={handleCloseForm}
-                className="px-6 py-2 text-gray-600 hover:text-gray-900 font-medium active:scale-95 transition-all"
-              >
-                Cancel
-              </button>
-            </div>
+              <VenueForm
+                onSubmit={handleAddVenue}
+                isLoading={loading}
+                initialData={editingVenue}
+                isEditing={!!editingVenue}
+              />
+              <div className="mt-4 text-center select-none">
+                <Button
+                  onClick={handleCloseForm}
+                  variant="ghost"
+                  className="font-bold text-stone-500 hover:text-stone-700"
+                >
+                  Cancel
+                </Button>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Venues List */}
+        {/* Venues grid section */}
         <div>
           {loading && venues.length === 0 ? (
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -154,114 +180,117 @@ export default function OrganizerDashboard() {
                ))}
              </div>
           ) : venues.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center py-16 px-6 clay-card flex flex-col items-center justify-center border border-[var(--border-light)] rounded-2xl shadow-sm bg-white dark:bg-[#211C1F]"
-            >
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-500/10 mb-5 shadow-sm text-[#E85D83] dark:text-[#F06D91]">
-                <FiPlus size={32} />
-              </div>
-              <h3 className="text-xl font-bold text-[var(--text-dark)] mb-2">No Venues Yet</h3>
-              <p className="max-w-md text-sm text-[var(--text-muted)] mb-6 leading-relaxed">
-                Get started by creating your first professional wedding venue listing.
-              </p>
-              <button
-                onClick={() => {
-                  setEditingVenue(null);
-                  setShowForm(true);
-                }}
-                className="rounded-xl bg-[#E85D83] hover:bg-[#C43C62] dark:bg-[#F06D91] dark:hover:bg-[#E85D83] px-6 py-2.5 text-xs font-bold text-white transition hover:-translate-y-[1px] shadow-sm cursor-pointer inline-flex items-center gap-2"
-              >
-                <FiPlus size={16} />
-                <span>Add Your First Venue</span>
-              </button>
-            </motion.div>
+            <EmptyState
+              title="No venues yet"
+              description="Get started by creating your first professional wedding venue listing to manage bookings."
+              action={
+                <Button
+                  onClick={() => {
+                    setEditingVenue(null);
+                    setShowForm(true);
+                  }}
+                  variant="primary"
+                  className="font-bold shadow-sm"
+                  leftIcon={<Plus size={15} />}
+                >
+                  Add Your First Venue
+                </Button>
+              }
+            />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {venues.map((venue) => (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
+                <Card 
                   key={venue._id}
-                  className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-all duration-300"
+                  className="border border-[var(--border-medium)] overflow-hidden flex flex-col justify-between hover:shadow-md transition-all duration-300"
                 >
                   {/* Venue Image */}
-                  {venue.images && venue.images.length > 0 ? (
-                    <img
-                      src={getVenueCardImageUrl(venue.images[0].url)}
-                      alt={venue.name}
-                      className="w-full h-48 object-cover"
-                      loading="lazy"
-                      onError={handleImageError}
-                    />
-                  ) : (
-                    <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-                      <span className="text-gray-500">No image</span>
-                    </div>
-                  )}
-
-                  {/* Venue Info */}
-                  <div className="p-4">
-                    <h3 className="text-lg font-semibold text-gray-900">{venue.name}</h3>
-                    <p className="text-sm text-gray-600 mb-2">{venue.city}</p>
-
-                    <div className="space-y-2 mb-4">
-                      <p className="text-sm">
-                        <span className="font-semibold">Type:</span> {venue.type}
-                      </p>
-                      <p className="text-sm">
-                        <span className="font-semibold">Capacity:</span> {venue.capacity} guests
-                      </p>
-                      <p className="text-sm">
-                        <span className="font-semibold">Base Price:</span> ₹{venue.pricing?.base}/person
-                      </p>
-                    </div>
-
-                    {/* Amenities */}
-                    {venue.amenities && venue.amenities.length > 0 && (
-                      <div className="mb-4">
-                        <p className="text-sm font-semibold mb-2">Amenities:</p>
-                        <div className="flex flex-wrap gap-1">
-                          {venue.amenities.slice(0, 3).map((amenity, idx) => (
-                            <span
-                              key={idx}
-                              className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded"
-                            >
-                              {amenity}
-                            </span>
-                          ))}
-                          {venue.amenities.length > 3 && (
-                            <span className="text-xs text-gray-600 px-2 py-1">
-                              +{venue.amenities.length - 3} more
-                            </span>
-                          )}
-                        </div>
+                  <div className="relative h-48 w-full bg-stone-100 dark:bg-stone-900/50 overflow-hidden shrink-0 select-none border-b border-[var(--border-light)]">
+                    {venue.images && venue.images.length > 0 ? (
+                      <img
+                        src={getVenueCardImageUrl(venue.images[0].url)}
+                        alt={venue.name}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        onError={handleImageError}
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-[var(--text-muted)] text-sm font-semibold select-none">
+                        No image available
                       </div>
                     )}
+                  </div>
 
-                    {/* Actions */}
-                    <div className="flex gap-2 border-t pt-4">
-                      <button
+                  {/* Venue details Info */}
+                  <div className="p-5 flex-1 flex flex-col justify-between">
+                    <div className="flex-grow flex flex-col justify-start">
+                      <h3 className="font-serif text-lg font-bold text-[var(--text-dark)] leading-snug truncate" title={venue.name}>
+                        {venue.name}
+                      </h3>
+                      <p className="text-xs text-[var(--text-muted)] font-semibold capitalize mb-4 select-none">{venue.city}</p>
+
+                      <div className="space-y-2 mb-4 text-xs font-semibold text-[var(--text-muted)] select-none">
+                        <p className="flex justify-between border-b border-[var(--border-light)] pb-1.5">
+                          <span>Setting Type</span> 
+                          <span className="text-[var(--text-dark)] capitalize">{venue.type || venue.venueType || 'Venue'}</span>
+                        </p>
+                        <p className="flex justify-between border-b border-[var(--border-light)] pb-1.5">
+                          <span>Capacity</span> 
+                          <span className="text-[var(--text-dark)]">{venue.capacity} guests</span>
+                        </p>
+                        <p className="flex justify-between border-b border-[var(--border-light)] pb-1.5">
+                          <span>Base Price</span> 
+                          <span className="text-[var(--text-dark)]">₹{(venue.pricing?.base || 0).toLocaleString('en-IN')}/person</span>
+                        </p>
+                      </div>
+
+                      {/* Amenities */}
+                      {venue.amenities && venue.amenities.length > 0 && (
+                        <div className="mb-4 select-none">
+                          <p className="text-xs text-[var(--text-muted)] font-semibold mb-2">Amenities</p>
+                          <div className="flex flex-wrap gap-1">
+                            {venue.amenities.slice(0, 3).map((amenity, idx) => (
+                              <Badge key={idx} variant="secondary" className="capitalize text-[10px] py-0.5 px-2 font-bold tracking-normal">
+                                {amenity}
+                              </Badge>
+                            ))}
+                            {venue.amenities.length > 3 && (
+                              <span className="text-[10px] text-[var(--text-muted)] font-semibold flex items-center">
+                                +{venue.amenities.length - 3} more
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Action buttons */}
+                    <div className="flex gap-2 border-t border-[var(--border-light)] pt-4 mt-4 select-none">
+                      <Button
                         onClick={() => handleEditVenue(venue)}
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition"
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 font-bold gap-1.5"
+                        leftIcon={<Edit2 size={13} />}
                       >
-                        <FiEdit2 size={16} /> Edit
-                      </button>
-                      <button
+                        Edit
+                      </Button>
+                      <Button
                         onClick={() => handleDeleteVenue(venue._id)}
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded hover:bg-red-100 transition"
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 font-bold gap-1.5 text-red-600 border-red-200 hover:bg-red-50"
+                        leftIcon={<Trash2 size={13} />}
                       >
-                        <FiTrash2 size={16} /> Delete
-                      </button>
+                        Delete
+                      </Button>
                     </div>
                   </div>
-                </motion.div>
+                </Card>
               ))}
             </div>
           )}
         </div>
-      </div>
       </motion.div>
     </div>
   );
